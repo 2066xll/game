@@ -68,7 +68,8 @@ export default defineConfig({
     assetsDir: 'assets',
     minify: 'esbuild', // 使用esbuild替代terser，esbuild速度更快
     esbuildOptions: {
-      drop: ['console', 'debugger']
+      drop: ['console', 'debugger'],
+      target: ['es2020'] // 正确设置target在esbuildOptions中
     },
     cacheDir: '.vite',
     cssCodeSplit: true,
@@ -77,18 +78,10 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000, // 增大警告限制，减少不必要的检查
     // 加快构建速度的配置
     ssr: false,
-    target: 'modules',
     rollupOptions: {
-      // 简化代码分割配置，减少渲染chunks的复杂度
-      manualChunks: {
-        // 仅拆分大型库
-        'vendor': ['vue', 'vue-router', 'pinia', 'lodash', 'axios']
-      },
+      // 移除manualChunks配置，使用默认的代码分割行为
       // 优化Rollup选项，减少不必要的检查
-      treeshake: {
-        // 快速模式，略微牺牲一些tree-shaking效率以提高速度
-        moduleSideEffects: 'no-external'
-      },
+      treeshake: true,
       output: {
         // 简化文件名命名规则，减少计算复杂度
         assetFileNames: 'assets/[name]-[hash][extname]',

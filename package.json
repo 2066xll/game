@@ -20,20 +20,21 @@
     "axios": "^1.13.2",
     "lodash": "^4.17.21",
     "pinia": "^3.0.4",
-    "vite-plugin-imagemin": "^0.6.1",
     "vue": "^3.5.24",
     "vue-lazyload": "^3.0.0",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.5",
+    "@eslint/config-array": "^0.18.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^8.0.0",
-    "eslint": "^8.56.0",
+    "eslint": "^9.12.0",
     "eslint-plugin-vue": "^9.19.2",
     "prettier": "^3.2.5",
     "terser": "^5.44.1",
     "vite": "^7.2.2",
+    "vite-plugin-imagemin": "^0.6.1",
     "wrangler": "^4.48.0"
   },
   "eslintConfig": {
