@@ -1,0 +1,89 @@
+name: Game Website CI/CD
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  # 代码检查和测试
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: 设置Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: 安装依赖
+      run: npm install
+    
+    - name: 运行代码检查
+      run: npm run lint
+      if: github.ref != 'refs/heads/main'
+    
+    - name: 运行测试
+      run: npm run test
+      if: github.ref != 'refs/heads/main'
+
+  # 生产环境构建和部署
+  build-and-deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: 设置Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: 安装依赖
+      run: npm install
+    
+    - name: 构建项目
+      run: npm run build
+    
+    - name: 部署到Cloudflare Pages
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: game-website
+        directory: dist
+        environment: production
+
+  # 开发环境构建（不部署）
+  build-dev:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: 设置Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: 安装依赖
+      run: npm install
+    
+    - name: 构建开发版本
+      run: npm run build:dev
+    
+    - name: 保存构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: dev-build
+        path: dist

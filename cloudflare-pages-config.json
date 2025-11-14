@@ -1,0 +1,61 @@
+{
+  "buildCommand": "npm run build",
+  "buildOutputDirectory": "dist",
+  "rootDirectory": ".",
+  "buildVersion": "1.0.0",
+  "framework": "vite",
+  "envVars": {
+    "NODE_VERSION": "18"
+  },
+  "headers": [
+    {
+      "source": "/assets/**",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
+      ]
+    },
+    {
+      "source": "**/*.+(js|css)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
+      ]
+    },
+    {
+      "source": "**/*.+(png|jpg|jpeg|gif|webp|svg|ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/api/**",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/",
+      "statusCode": 200
+    }
+  ],
+  "preview": {
+    "buildCommand": "npm run build:dev"
+  },
+  "functions": {
+    "directory": "functions"
+  }
+}
