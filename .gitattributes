@@ -1,0 +1,5 @@
+# 确保public/game-website-core被当作普通文件处理
+public/game-website-core/** -submodule
+# 防止Git将任何目录识别为子模块
+**/.git -git
+**/.gitmodules -git
