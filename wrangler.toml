@@ -16,6 +16,7 @@ workers_dev = false
 workers_dev = true
 
 # 构建配置
+pages_build_output_dir = "dist"
 build.command = "npm run build"
 build.cwd = ""
 build.upload.format = "service-worker"
