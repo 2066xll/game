@@ -10,9 +10,48 @@ jobs:
   # 代码检查和测试
   lint-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # 设置超时时间
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    
+    - name: 环境信息和调试
+      run: |
+        echo "=== 环境信息 ==="
+        git --version
+        node --version
+        npm --version
+        echo "当前目录: $(pwd)"
+        echo "目录结构:"
+        ls -la
+    
+    - name: 显式子模块初始化和更新
+      id: submodule_init
+      timeout-minutes: 10  # 设置子模块初始化超时
+      continue-on-error: false  # 子模块失败时停止整个工作流
+      run: |
+        # 确保使用HTTPS而不是SSH访问GitHub
+        git config --global url.https://github.com/.insteadOf git@github.com/
+        git config --global http.postBuffer 524288000  # 增加缓冲区大小
+        
+        echo "开始初始化子模块..."
+        git submodule sync --recursive
+        git submodule update --init --recursive --force
+        
+        echo "子模块初始化完成，检查状态:"
+        git submodule status
+        
+        # 检查子模块目录是否存在且不为空
+        if [ -d "public/game-website-core" ] && [ "$(ls -A public/game-website-core)" ]; then
+          echo "子模块目录存在且包含内容"
+          ls -la public/game-website-core
+        else
+          echo "错误: 子模块目录不存在或为空"
+          exit 1
+        fi
     
     - name: 设置Node.js
       uses: actions/setup-node@v3
@@ -36,9 +75,48 @@ jobs:
     needs: lint-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    timeout-minutes: 40  # 设置超时时间
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    
+    - name: 环境信息和调试
+      run: |
+        echo "=== 环境信息 ==="
+        git --version
+        node --version
+        npm --version
+        echo "当前目录: $(pwd)"
+        echo "目录结构:"
+        ls -la
+    
+    - name: 显式子模块初始化和更新
+      id: submodule_init
+      timeout-minutes: 10  # 设置子模块初始化超时
+      continue-on-error: false  # 子模块失败时停止整个工作流
+      run: |
+        # 确保使用HTTPS而不是SSH访问GitHub
+        git config --global url.https://github.com/.insteadOf git@github.com/
+        git config --global http.postBuffer 524288000  # 增加缓冲区大小
+        
+        echo "开始初始化子模块..."
+        git submodule sync --recursive
+        git submodule update --init --recursive --force
+        
+        echo "子模块初始化完成，检查状态:"
+        git submodule status
+        
+        # 检查子模块目录是否存在且不为空
+        if [ -d "public/game-website-core" ] && [ "$(ls -A public/game-website-core)" ]; then
+          echo "子模块目录存在且包含内容"
+          ls -la public/game-website-core
+        else
+          echo "错误: 子模块目录不存在或为空"
+          exit 1
+        fi
     
     - name: 设置Node.js
       uses: actions/setup-node@v3
@@ -66,9 +144,48 @@ jobs:
     needs: lint-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev'
+    timeout-minutes: 40  # 设置超时时间
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    
+    - name: 环境信息和调试
+      run: |
+        echo "=== 环境信息 ==="
+        git --version
+        node --version
+        npm --version
+        echo "当前目录: $(pwd)"
+        echo "目录结构:"
+        ls -la
+    
+    - name: 显式子模块初始化和更新
+      id: submodule_init
+      timeout-minutes: 10  # 设置子模块初始化超时
+      continue-on-error: false  # 子模块失败时停止整个工作流
+      run: |
+        # 确保使用HTTPS而不是SSH访问GitHub
+        git config --global url.https://github.com/.insteadOf git@github.com/
+        git config --global http.postBuffer 524288000  # 增加缓冲区大小
+        
+        echo "开始初始化子模块..."
+        git submodule sync --recursive
+        git submodule update --init --recursive --force
+        
+        echo "子模块初始化完成，检查状态:"
+        git submodule status
+        
+        # 检查子模块目录是否存在且不为空
+        if [ -d "public/game-website-core" ] && [ "$(ls -A public/game-website-core)" ]; then
+          echo "子模块目录存在且包含内容"
+          ls -la public/game-website-core
+        else
+          echo "错误: 子模块目录不存在或为空"
+          exit 1
+        fi
     
     - name: 设置Node.js
       uses: actions/setup-node@v3

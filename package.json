@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "prettier": "prettier --write .",
-    "test": "echo '测试通过'"
+    "test": "echo '测试通过'",
+    "deploy": "npx wrangler deploy",
+    "deploy:dev": "npx wrangler deploy --env development",
+    "wrangler:dev": "npx wrangler dev",
+    "wrangler:preview": "npx wrangler preview"
   },
   "dependencies": {
     "axios": "^1.13.2",
@@ -29,7 +33,8 @@
     "eslint-plugin-vue": "^9.19.2",
     "prettier": "^3.2.5",
     "terser": "^5.44.1",
-    "vite": "^7.2.2"
+    "vite": "^7.2.2",
+    "wrangler": "^4.48.0"
   },
   "eslintConfig": {
     "root": true,

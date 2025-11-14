@@ -1,0 +1,4 @@
+[submodule "public/game-website-core"]
+	path = public/game-website-core
+	url = https://github.com/2066xll/game-website.git
+	branch = main
