@@ -6,21 +6,21 @@ import viteImagemin from 'vite-plugin-imagemin'
 export default defineConfig({
   plugins: [
     vue(),
-    // 图片优化
+    // 图片优化 - 调整为更快的配置
     viteImagemin({
       gifsicle: {
-        optimizationLevel: 7,
+        optimizationLevel: 3, // 降低优化级别，加快速度
         interlaced: false,
       },
       optipng: {
-        optimizationLevel: 7,
+        optimizationLevel: 3, // 降低优化级别，加快速度
       },
       mozjpeg: {
-        quality: 80,
+        quality: 75, // 略微降低质量，加快速度
       },
       pngquant: {
-        quality: [0.8, 0.9],
-        speed: 4,
+        quality: [0.7, 0.8], // 略微降低质量范围
+        speed: 8, // 提高速度值(1-11)，1最快但压缩率低
       },
       svgo: {
         plugins: [
@@ -33,6 +33,10 @@ export default defineConfig({
           },
         ],
       },
+      // 添加处理并发数设置
+      multipass: false,
+      // 禁用某些可能不需要的格式
+      disable: ['webp'],
     }),
   ],
   // 路径解析
@@ -62,32 +66,37 @@ export default defineConfig({
     // 构建优化配置
     outDir: 'dist',
     assetsDir: 'assets',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
+    minify: 'esbuild', // 使用esbuild替代terser，esbuild速度更快
+    esbuildOptions: {
+      drop: ['console', 'debugger']
     },
     cacheDir: '.vite',
     cssCodeSplit: true,
     sourcemap: false,
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000, // 增大警告限制，减少不必要的检查
+    // 加快构建速度的配置
+    ssr: false,
+    target: 'modules',
     rollupOptions: {
-      // 代码分割配置
+      // 简化代码分割配置，减少渲染chunks的复杂度
       manualChunks: {
-        // 拆分vue和vue-router等核心库
-        'vue-vendor': ['vue', 'vue-router'],
-        'utils': ['lodash', 'axios'],
-        'store': ['pinia']
+        // 仅拆分大型库
+        'vendor': ['vue', 'vue-router', 'pinia', 'lodash', 'axios']
+      },
+      // 优化Rollup选项，减少不必要的检查
+      treeshake: {
+        // 快速模式，略微牺牲一些tree-shaking效率以提高速度
+        moduleSideEffects: 'no-external'
       },
       output: {
-        // 静态资源文件命名规则
-        assetFileNames: 'assets/[hash][extname]',
-        // 入口文件名命名规则
+        // 简化文件名命名规则，减少计算复杂度
+        assetFileNames: 'assets/[name]-[hash][extname]',
         entryFileNames: 'assets/[name].[hash].js',
-        // 非入口文件名命名规则
-        chunkFileNames: 'assets/chunk-[hash].js'
+        chunkFileNames: 'assets/chunk-[name].[hash].js',
+        // 优化chunks生成
+        compact: true,
+        hoistTransitiveImports: true
       }
     }
   }
