@@ -5,7 +5,7 @@
   "buildVersion": "1.0.0",
   "framework": "vite",
   "envVars": {
-    "NODE_VERSION": "18"
+    "NODE_VERSION": "20"
   },
   "headers": [
     {
