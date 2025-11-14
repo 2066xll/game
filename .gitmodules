@@ -1,4 +1,5 @@
-[submodule "public/game-website-core"]
-	path = public/game-website-core
-	url = https://github.com/2066xll/game-website.git
-	branch = main
+# [submodule "public/game-website-core"]
+#	path = public/game-website-core
+#	url = https://github.com/2066xll/game-website.git
+#	branch = main
+# 注意：暂时注释掉子模块配置，因为该仓库可能不存在且Cloudflare Pages构建环境无法提供认证信息
