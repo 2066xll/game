@@ -16,11 +16,7 @@ workers_dev = false
 workers_dev = true
 
 # 构建配置
-build = {
-  command = "npm run build",
-  cwd = "",
-  upload = {
-    format = "service-worker",
-    dir = "dist"
-  }
-}
+build.command = "npm run build"
+build.cwd = ""
+build.upload.format = "service-worker"
+build.upload.dir = "dist"
