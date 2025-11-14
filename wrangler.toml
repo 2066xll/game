@@ -9,7 +9,18 @@ compatibility_flags = ["nodejs_compat"]
 # 配置环境
 [env.production]
 workers_dev = false
-route = "your-domain.com/*"
+# 注意：这里需要在Cloudflare控制台中设置实际的域名
+# route = "your-domain.com/*"
 
 [env.development]
 workers_dev = true
+
+# 构建配置
+build = {
+  command = "npm run build",
+  cwd = "",
+  upload = {
+    format = "service-worker",
+    dir = "dist"
+  }
+}

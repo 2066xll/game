@@ -52,6 +52,42 @@ git submodule update --remote --merge
 - 主分支(`main`)：自动构建并部署到Cloudflare Pages生产环境
 - 开发分支(`dev`)：自动构建并保存构建产物，不部署
 
+## Cloudflare Pages部署配置指南
+
+### 1. GitHub仓库准备
+
+1. 确保项目已推送到GitHub仓库
+2. 配置必要的GitHub Secrets（在仓库的Settings > Secrets and variables > Actions中）：
+   - `CLOUDFLARE_API_TOKEN`: 具有Pages编辑权限的API令牌
+   - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare账户ID
+
+### 2. Cloudflare Pages配置
+
+1. 登录Cloudflare控制台
+2. 导航到"Pages"部分
+3. 点击"连接到Git"
+4. 选择您的GitHub账户，找到并选择`game`仓库
+5. 配置构建设置：
+   - 构建命令: `npm run build`
+   - 构建输出目录: `dist`
+   - 环境变量: `NODE_VERSION=18`
+6. 点击"开始构建"
+
+### 3. 自动化部署验证
+
+推送代码到GitHub后，验证部署流程是否正常工作：
+
+1. 检查GitHub Actions工作流是否正常触发（仓库的Actions标签页）
+2. 查看Cloudflare Pages构建状态（Cloudflare控制台的Pages部分）
+3. 访问分配的Cloudflare Pages域名，确认网站正常访问
+
+### 4. 自定义域名配置（可选）
+
+1. 在Cloudflare Pages项目设置中，导航到"自定义域"
+2. 点击"设置自定义域"
+3. 按照提示添加和验证您的自定义域名
+4. 更新DNS设置，确保域名正确解析到Cloudflare
+
 ## 常见问题排查
 
 ### 子模块更新失败
@@ -62,3 +98,10 @@ git submodule update --remote --merge
 2. 确保GitHub Actions有足够的权限访问子模块仓库
 3. 尝试使用HTTPS而不是SSH访问GitHub仓库
 4. 增加git http缓冲区大小：`git config --global http.postBuffer 524288000`
+
+### Cloudflare部署问题
+
+1. 验证API令牌权限是否正确
+2. 检查账户ID是否准确
+3. 确认构建命令和输出目录配置正确
+4. 查看Cloudflare Pages构建日志获取详细错误信息

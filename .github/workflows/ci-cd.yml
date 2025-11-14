@@ -133,11 +133,17 @@ jobs:
     - name: 部署到Cloudflare Pages
       uses: cloudflare/pages-action@v1
       with:
+        # 注意：需要在GitHub仓库的Settings > Secrets and variables > Actions中设置以下密钥
+        # CLOUDFLARE_API_TOKEN: 具有Pages编辑权限的Cloudflare API令牌
+        # CLOUDFLARE_ACCOUNT_ID: Cloudflare账户ID
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         projectName: game-website
         directory: dist
         environment: production
+        # 可选配置
+        # enablePagesFunctions: true
+        # wranglerVersion: 'latest'
 
   # 开发环境构建（不部署）
   build-dev:
