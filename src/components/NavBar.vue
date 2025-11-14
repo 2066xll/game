@@ -53,7 +53,7 @@ onMounted(() => {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -108,12 +108,15 @@ onMounted(() => {
   top: 100%;
   left: 0;
   background-color: #2a2a2a;
-  min-width: 200px;
+  min-width: 280px;
+  max-width: 400px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  z-index: 101;
-  max-height: 400px;
+  z-index: 1000; /* 提高z-index确保不被遮挡 */
+  max-height: 500px; /* 增加最大高度 */
   overflow-y: auto;
   display: none;
+  border-radius: 4px;
+  border: 1px solid #333;
 }
 
 .dropdown:hover .dropdown-content {
@@ -126,13 +129,31 @@ onMounted(() => {
   text-decoration: none;
   display: block;
   transition: background-color 0.3s ease, color 0.3s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .dropdown-item:hover {
   background-color: #3a3a3a;
   color: #4285F4;
+}
+
+/* 优化下拉菜单的滚动条样式 */
+.dropdown-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+  background: #666;
 }
 </style>
