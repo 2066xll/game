@@ -43,8 +43,6 @@ const app = createApp(App)
 // 配置vue-lazyload
 app.use(VueLazyload, {
   preLoad: 1.3,
-  error: '/error-image.png',
-  loading: '/loading-image.png',
   attempt: 1
 })
 

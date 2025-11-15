@@ -13,8 +13,6 @@
         :alt="game.title || game.name" 
         class="game-poster" 
         @error="handleImageError"
-        :loading="'/loading-image.png'"
-        :error="'/error-image.png'"
       >
       <!-- 使用占位色块作为回退 -->
       <div v-if="showPlaceholder" class="poster-placeholder" :style="getPosterStyle()">
