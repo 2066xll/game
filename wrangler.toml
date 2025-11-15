@@ -1,24 +1,5 @@
-name = "game-website"
-main = "server.js"
-compatibility_date = "2023-07-01"
-compatibility_flags = ["nodejs_compat"]
-
-# 配置绑定
-# 如果需要KV、R2等资源，可以在这里配置绑定
-
-# 配置环境
-[env.production]
-workers_dev = false
-# 注意：这里需要在Cloudflare控制台中设置实际的域名
-# route = "your-domain.com/*"
-
-[env.development]
-workers_dev = true
-
 # Cloudflare Pages 配置
 [pages]
 pages_build_output_dir = "dist"
 build.command = "npm run build"
-build.cwd = ""
-build.upload.format = "service-worker"
-build.upload.dir = "dist"
+build.upload.format = "static"
