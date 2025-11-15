@@ -5,8 +5,8 @@
       <p>探索最热门的游戏，找到你喜欢的类型</p>
     </header>
 
-    <!-- 桌面端搜索框 -->
-    <div class="search-container" v-if="isDesktop">
+    <!-- 搜索框 - 所有设备都显示 -->
+    <div class="search-container">
       <input 
         v-model="searchQuery" 
         type="text" 
@@ -301,12 +301,30 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  /* 添加移动端优化 */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .search-input:focus {
   border-color: #4285F4;
   box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
   transform: translateY(-1px);
+}
+
+/* 移动端搜索框优化 */
+@media (max-width: 768px) {
+  .search-container {
+    margin-bottom: 15px;
+    max-width: 100%;
+  }
+  
+  .search-input {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border-radius: 25px;
+  }
 }
 
 /* 标签样式 */

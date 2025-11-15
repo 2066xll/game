@@ -13,6 +13,11 @@ const routes = [
     component: () => import('./views/HomeView.vue')
   },
   {
+    path: '/favorites',
+    name: 'Favorites',
+    component: () => import('./views/FavoritesView.vue')
+  },
+  {
     path: '/category/:type?/:platform?',
     name: 'Category',
     component: () => import('./views/CategoryView.vue')

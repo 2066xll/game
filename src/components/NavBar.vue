@@ -2,22 +2,108 @@
   <nav class="navbar">
     <div class="container">
       <!-- 网站Logo -->
-      <router-link to="/" class="logo">SunRize的游戏网站</router-link>
+      <router-link to="/" class="logo">
+        <span class="logo-text">SunRize的游戏网站</span>
+      </router-link>
       
       <!-- 导航菜单 -->
       <div class="nav-menu">
-        <router-link to="/" class="nav-item" active-class="active">首页</router-link>
+        <router-link to="/" class="nav-item" active-class="active">
+          <span class="nav-text">首页</span>
+        </router-link>
         
-        <!-- 游戏下拉菜单 -->
-        <div class="dropdown">
-          <button class="dropdown-toggle">游戏</button>
-          <div class="dropdown-content">
-            <a href="https://www.ccw.site/detail/66baf0a24f28411894348777?SubjectAreaGroupId=53&component=0&inviteCode=GDoWAXEMJsC5qovt&module=0" target="_blank" class="dropdown-item">MMO联机枪战2（联机）</a>
-            <a href="https://www.ccw.site/detail/67cd5f03bd76ef296cd90cf9?SubjectAreaGroupId=604&component=0&inviteCode=3bqDLAlXeA9jKJqQ&module=0" target="_blank" class="dropdown-item">Frontline（联机）</a>
-            <a href="https://www.ccw.site/detail/679e0cfeb1f1142657a9b1d6?inviteCode=J3o2PKzn4zV3Tw56" target="_blank" class="dropdown-item">散弹之王（联机）</a>
-            <a href="https://www.ccw.site/detail/6794b617b1f1142657a98541?inviteCode=N3odQgJbriQjl34o" target="_blank" class="dropdown-item">东方青取径</a>
-            <a href="https://www.ccw.site/detail/669e5988e1534b396b2c202e?inviteCode=6NqPPPKpnANyDe8h" target="_blank" class="dropdown-item">精灵与湮灭之地</a>
-            <a href="https://www.ccw.site/detail/625293c2a46435540014e193?inviteCode=8yqm36pNn4p2mRUF" target="_blank" class="dropdown-item">国际象棋</a>
+
+        
+        <!-- 游戏下拉菜单 - 优化版 -->
+        <div class="dropdown" 
+             @mouseenter="handleMouseEnter"
+             @mouseleave="handleMouseLeave">
+          <button class="dropdown-toggle">
+            <span class="dropdown-text">其他游戏</span>
+            <span class="dropdown-arrow" :class="{ 'rotate': isOpen }">▼</span>
+          </button>
+          
+          <!-- 过渡区域 - 防止菜单意外关闭 -->
+          <div class="dropdown-connector" v-show="isOpen || isOpening">
+          </div>
+          
+          <div class="dropdown-content" 
+               v-show="isOpen || isOpening"
+               @mouseenter="handleMenuMouseEnter"
+               @mouseleave="handleMouseLeave">
+            <!-- CCW平台游戏 -->
+            <a href="https://www.ccw.site/detail/66baf0a24f28411894348777?SubjectAreaGroupId=53&component=0&inviteCode=GDoWAXEMJsC5qovt&module=0" target="_blank" class="dropdown-item">
+              <span class="game-title">MMO联机枪战2（联机）</span>
+            </a>
+            <a href="https://www.ccw.site/detail/67cd5f03bd76ef296cd90cf9?SubjectAreaGroupId=604&component=0&inviteCode=3bqDLAlXeA9jKJqQ&module=0" target="_blank" class="dropdown-item">
+              <span class="game-title">Frontline（联机）</span>
+            </a>
+            <a href="https://www.ccw.site/detail/679e0cfeb1f1142657a9b1d6?inviteCode=J3o2PKzn4zV3Tw56" target="_blank" class="dropdown-item">
+              <span class="game-title">散弹之王（联机）</span>
+            </a>
+            <a href="https://www.ccw.site/detail/6794b617b1f1142657a98541?inviteCode=N3odQgJbriQjl34o" target="_blank" class="dropdown-item">
+              <span class="game-title">东方青取径</span>
+            </a>
+            <a href="https://www.ccw.site/detail/669e5988e1534b396b2c202e?inviteCode=6NqPPPKpnANyDe8h" target="_blank" class="dropdown-item">
+              <span class="game-title">精灵与湮灭之地</span>
+            </a>
+            <a href="https://www.ccw.site/detail/625293c2a46435540014e193?inviteCode=8yqm36pNn4p2mRUF" target="_blank" class="dropdown-item">
+              <span class="game-title">国际象棋</span>
+            </a>
+            
+            <!-- 4399平台游戏 -->
+            <a href="https://www.4399.com/" target="_blank" class="dropdown-item">
+              <span class="game-title">4399小游戏（需4399账号）</span>
+            </a>
+            <a href="https://www.4399.com/flash/243372_1.htm" target="_blank" class="dropdown-item">
+              <span class="game-title">只有一道门（需4399账号）</span>
+            </a>
+            <a href="https://www.4399.com/flash/220014_4.htm" target="_blank" class="dropdown-item">
+              <span class="game-title">火柴人逃亡日记（需4399账号）</span>
+            </a>
+            <a href="https://www.4399.com/flash/205551_4.htm" target="_blank" class="dropdown-item">
+              <span class="game-title">死神vs火影（需4399账号）</span>
+            </a>
+            <a href="https://www.4399.com/flash/210650.htm" target="_blank" class="dropdown-item">
+              <span class="game-title">造梦无双（需4399账号）</span>
+            </a>
+            <a href="https://www.4399.com/flash/18012.htm" target="_blank" class="dropdown-item">
+              <span class="game-title">植物大战僵尸（需4399账号）</span>
+            </a>
+            <a href="https://news.4399.com/hxjy/" target="_blank" class="dropdown-item">
+              <span class="game-title">火线精英（需4399账号）</span>
+            </a>
+            <a href="https://ssjj.4399.com/" target="_blank" class="dropdown-item">
+              <span class="game-title">生死狙击（需4399账号）</span>
+            </a>
+            
+            <!-- 云游戏 -->
+            <a href="https://y.4399.com/detail/1?from=1" target="_blank" class="dropdown-item">
+              <span class="game-title">云原神（需4399账号和米哈游账号）</span>
+            </a>
+            <a href="https://ys.mihoyo.com/cloud/#/" target="_blank" class="dropdown-item">
+              <span class="game-title">云原神（需米哈游账号）</span>
+            </a>
+            <a href="https://y.4399.com/detail/124?from=1" target="_blank" class="dropdown-item">
+              <span class="game-title">云绝区零（需4399账号和米哈游账号）</span>
+            </a>
+            <a href="https://y.4399.com/detail/34?from=1#search3-a254" target="_blank" class="dropdown-item">
+              <span class="game-title">云崩坏:星穹铁道（需4399账号和米哈游账号）</span>
+            </a>
+            <a href="https://sr.mihoyo.com/cloud/#/" target="_blank" class="dropdown-item">
+              <span class="game-title">云崩坏:星穹铁道（需米哈游账号）</span>
+            </a>
+            
+            <!-- 下载链接 -->
+            <a href="https://dl.4399ytzg2.com/myp/game/wd/hxjy/ver3/4399%E7%81%AB%E7%BA%BF%E7%B2%BE%E8%8B%B1.exe?v=20251115" target="_blank" class="dropdown-item">
+              <span class="game-title">火线精英下载（Windows）</span>
+            </a>
+            <a href="https://dl.4399ytzg2.com/myp/game/wd/ssjj/4399%E7%94%9F%E6%AD%BB%E7%8B%99%E5%87%BB.exe?v=20251106&v=20251115" target="_blank" class="dropdown-item">
+              <span class="game-title">生死狙击下载（Windows）</span>
+            </a>
+            <a href="https://dl.4399ytzg2.com/microgame/360se+5000577+n761579be99.exe" target="_blank" class="dropdown-item">
+              <span class="game-title">360浏览器</span>
+            </a>
           </div>
         </div>
       </div>
@@ -27,10 +113,64 @@
 
 <script setup>
 import { useGameStore } from '../store/gameStore'
-import { onMounted } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 
 // 加载游戏数据
 const gameStore = useGameStore()
+
+// 状态管理
+const isOpen = ref(false)
+const isOpening = ref(false) // 用于处理菜单显示的过渡状态
+let openTimer = null
+let closeTimer = null
+
+// 处理鼠标进入按钮
+const handleMouseEnter = () => {
+  // 清除关闭计时器
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+  
+  // 设置打开延迟，避免误触发
+  openTimer = setTimeout(() => {
+    isOpening.value = true
+    // 短暂延迟后设置为打开状态，让动画更流畅
+    setTimeout(() => {
+      isOpen.value = true
+      isOpening.value = false
+    }, 50)
+  }, 50) // 很小的打开延迟，几乎是即时的
+}
+
+// 处理菜单鼠标进入
+const handleMenuMouseEnter = () => {
+  // 清除关闭计时器
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+}
+
+// 处理鼠标离开
+const handleMouseLeave = () => {
+  // 清除打开计时器
+  if (openTimer) {
+    clearTimeout(openTimer)
+    openTimer = null
+  }
+  
+  // 设置关闭延迟，给用户足够时间移动到下拉内容
+  closeTimer = setTimeout(() => {
+    isOpen.value = false
+  }, 300) // 300ms的延迟让用户有时间从按钮移到下拉内容
+}
+
+// 清理计时器
+onUnmounted(() => {
+  if (openTimer) clearTimeout(openTimer)
+  if (closeTimer) clearTimeout(closeTimer)
+})
 
 onMounted(() => {
   // 初始化时加载游戏数据
@@ -40,120 +180,290 @@ onMounted(() => {
 
 <style scoped>
 .navbar {
-  background-color: #1e1e1e;
-  padding: 15px 0;
-  border-bottom: 1px solid #333;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  padding: 12px 0;
+  border-bottom: 2px solid transparent;
+  background-clip: padding-box;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.navbar:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  gap: 32px;
 }
 
 .logo {
-  color: #F0F0F0;
-  font-size: 24px;
-  font-weight: bold;
   text-decoration: none;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: translateY(-2px);
+}
+
+.logo-text {
+  background: linear-gradient(90deg, #4285F4, #34A853);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .nav-menu {
   display: flex;
-  gap: 20px;
+  gap: 28px;
   align-items: center;
 }
 
 .nav-item {
-  color: #A0A0A0;
   text-decoration: none;
-  padding: 5px 10px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(66, 133, 244, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-item:hover::before {
+  left: 100%;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.nav-item.active {
+  background-color: rgba(66, 133, 244, 0.1);
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.2);
+}
+
+.nav-text {
+  color: #E0E0E0;
+  font-size: 16px;
+  font-weight: 500;
   transition: color 0.3s ease;
 }
 
-.nav-item:hover,
-.nav-item.active {
+.nav-item:hover .nav-text,
+.nav-item.active .nav-text {
   color: #4285F4;
 }
 
 /* 下拉菜单样式 */
 .dropdown {
   position: relative;
+  z-index: 1000;
 }
 
 .dropdown-toggle {
   background: none;
   border: none;
-  color: #A0A0A0;
-  padding: 5px 10px;
+  padding: 8px 16px;
   font-size: 16px;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   outline: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  /* 增大可点击区域 */
+  margin: -4px;
+  padding: 12px 20px;
 }
 
-.dropdown-toggle:hover,
-.dropdown-toggle:focus {
+.dropdown-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(66, 133, 244, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.dropdown-toggle:hover::before {
+  left: 100%;
+}
+
+.dropdown-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.dropdown-text {
+  color: #E0E0E0;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.dropdown-arrow {
+  color: #A0A0A0;
+  font-size: 12px;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-toggle:hover .dropdown-text,
+.dropdown-toggle:hover .dropdown-arrow {
   color: #4285F4;
+}
+
+.dropdown-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+/* 过渡区域 - 关键改进 */
+.dropdown-connector {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  margin-top: -5px;
+  z-index: -1;
+  background: transparent;
 }
 
 .dropdown-content {
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: #2a2a2a;
-  min-width: 280px;
-  max-width: 400px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  z-index: 1000; /* 提高z-index确保不被遮挡 */
-  max-height: 500px; /* 增加最大高度 */
+  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+  min-width: 320px;
+  max-width: 450px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  max-height: 500px;
   overflow-y: auto;
-  display: none;
-  border-radius: 4px;
+  border-radius: 12px;
   border: 1px solid #333;
+  margin-top: 5px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  /* 添加padding-top增加顶部可点击区域 */
+  padding-top: 5px;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
+/* 当菜单打开时的样式 */
+.dropdown-content {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dropdown-item {
-  color: #A0A0A0;
-  padding: 12px 16px;
+  color: #E0E0E0;
+  padding: 14px 20px;
   text-decoration: none;
   display: block;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  word-wrap: break-word;
-  white-space: normal;
-  line-height: 1.4;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  /* 增大点击区域 */
+  margin: -4px -10px;
+  padding: 18px 30px;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
 }
 
 .dropdown-item:hover {
-  background-color: #3a3a3a;
+  background-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+.dropdown-item:active {
+  background-color: rgba(66, 133, 244, 0.1);
+}
+
+.game-title {
+  font-weight: 500;
+  line-height: 1.5;
+  transition: color 0.3s ease;
+}
+
+.dropdown-item:hover .game-title {
   color: #4285F4;
 }
 
 /* 优化下拉菜单的滚动条样式 */
 .dropdown-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .dropdown-content::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 .dropdown-content::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 3px;
+  background: linear-gradient(to bottom, #4285F4, #34A853);
+  border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 .dropdown-content::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: linear-gradient(to bottom, #5B9BF3, #42BB53);
+}
+
+/* 响应式设计优化 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+    gap: 16px;
+  }
+  
+  .logo-text {
+    font-size: 20px;
+  }
+  
+  .nav-menu {
+    gap: 16px;
+  }
+  
+  .nav-item,
+  .dropdown-toggle {
+    padding: 6px 12px;
+  }
+  
+  .nav-text,
+  .dropdown-text {
+    font-size: 14px;
+  }
 }
 </style>
