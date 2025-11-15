@@ -7,12 +7,14 @@
   >
     <!-- 游戏海报 -->
     <div class="poster-container">
-      <!-- 使用public/assets/Poster下的图片 -->
+      <!-- 使用public/assets/Poster下的图片，使用vue-lazyload优化加载 -->
       <img 
-        :src="getPosterUrl()" 
+        v-lazy="getPosterUrl()" 
         :alt="game.title || game.name" 
         class="game-poster" 
         @error="handleImageError"
+        :loading="'/loading-image.png'"
+        :error="'/error-image.png'"
       >
       <!-- 使用占位色块作为回退 -->
       <div v-if="showPlaceholder" class="poster-placeholder" :style="getPosterStyle()">
