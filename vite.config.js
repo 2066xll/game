@@ -1,43 +1,11 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import viteImagemin from 'vite-plugin-imagemin'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    // 图片优化 - 调整为更快的配置
-    viteImagemin({
-      gifsicle: {
-        optimizationLevel: 3, // 降低优化级别，加快速度
-        interlaced: false,
-      },
-      optipng: {
-        optimizationLevel: 3, // 降低优化级别，加快速度
-      },
-      mozjpeg: {
-        quality: 75, // 略微降低质量，加快速度
-      },
-      pngquant: {
-        quality: [0.7, 0.8], // 略微降低质量范围
-        speed: 8, // 提高速度值(1-11)，1最快但压缩率低
-      },
-      svgo: {
-        plugins: [
-          {
-            name: 'removeViewBox',
-          },
-          {
-            name: 'removeEmptyAttrs',
-            active: false,
-          },
-        ],
-      },
-      // 添加处理并发数设置
-      multipass: false,
-      // 禁用某些可能不需要的格式
-      disable: ['webp'],
-    }),
+    // 图片优化插件已移除，以解决安全漏洞问题
   ],
   // 路径解析
   resolve: {

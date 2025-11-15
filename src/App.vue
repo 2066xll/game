@@ -1,6 +1,5 @@
 <script setup>
 import NavBar from './components/NavBar.vue'
-import HomeView from './views/HomeView.vue'
 </script>
 
 <template>
@@ -8,9 +7,9 @@ import HomeView from './views/HomeView.vue'
     <!-- 导航栏 -->
     <NavBar />
     
-    <!-- 主页视图 -->
+    <!-- 路由视图容器 -->
     <main class="main-content">
-      <HomeView />
+      <router-view />
     </main>
     
     <!-- 页脚 -->

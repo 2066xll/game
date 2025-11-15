@@ -15,7 +15,8 @@ workers_dev = false
 [env.development]
 workers_dev = true
 
-# 构建配置
+# Cloudflare Pages 配置
+[pages]
 pages_build_output_dir = "dist"
 build.command = "npm run build"
 build.cwd = ""
