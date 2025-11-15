@@ -1,5 +1,14 @@
-# Cloudflare Pages 配置
+# Cloudflare Pages 配置文件
+name = "game-website"
+
 [pages]
-pages_build_output_dir = "dist"
-build.command = "npm run build"
-build.upload.format = "static"
+  # 构建输出目录 - Cloudflare Pages要求的必要属性
+  pages_build_output_dir = "dist"
+  
+  [pages.build]
+    # 构建命令
+    command = "npm run build"
+    
+    [pages.build.upload]
+      # 上传格式设置为静态文件
+      format = "static"
