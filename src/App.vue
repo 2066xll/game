@@ -14,7 +14,7 @@ import NavBar from './components/NavBar.vue'
     
     <!-- 页脚 -->
     <footer class="app-footer">
-      <p>© 2024 游戏门户网站</p>
+      <p>© {{ new Date().getFullYear() }} SunRize的游戏网站 | 专注为玩家提供高质量游戏内容</p>
     </footer>
   </div>
 </template>
