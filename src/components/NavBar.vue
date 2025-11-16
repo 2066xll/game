@@ -42,8 +42,11 @@
                v-show="isOpen || isOpening"
                @mouseenter="handleMenuMouseEnter"
                @mouseleave="handleMouseLeave">
-            <!-- 游戏分类标题 -->
-            <div class="dropdown-section-title">CCW平台游戏</div>
+            <!-- 网页游戏平台 -->
+            <div class="dropdown-section-title">网页游戏平台</div>
+            
+            <!-- CCW平台游戏 -->
+            <div class="dropdown-subsection-title">CCW平台游戏</div>
             <a href="https://www.ccw.site/detail/66baf0a24f28411894348777?SubjectAreaGroupId=53&component=0&inviteCode=GDoWAXEMJsC5qovt&module=0" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">MMO联机枪战2（联机）</span>
             </a>
@@ -64,7 +67,7 @@
             </a>
             
             <!-- 4399平台游戏 -->
-            <div class="dropdown-section-title">4399平台游戏</div>
+            <div class="dropdown-subsection-title">4399平台游戏</div>
             <a href="https://www.4399.com/" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">4399小游戏（需4399账号）</span>
             </a>
@@ -90,13 +93,22 @@
               <span class="game-title">生死狙击（需4399账号）</span>
             </a>
             
-            <!-- 云游戏 -->
-            <div class="dropdown-section-title">云游戏</div>
-            <a href="https://y.4399.com/detail/1?from=1" target="_blank" class="dropdown-item" @click="closeMobileMenu">
-              <span class="game-title">云原神（需4399账号和米哈游账号）</span>
-            </a>
+            <!-- 云游戏服务 -->
+            <div class="dropdown-section-title">云游戏服务</div>
+            
+            <!-- 米哈游云游戏 -->
+            <div class="dropdown-subsection-title">米哈游云游戏</div>
             <a href="https://ys.mihoyo.com/cloud/#/" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">云原神（需米哈游账号）</span>
+            </a>
+            <a href="https://sr.mihoyo.com/cloud/#/" target="_blank" class="dropdown-item" @click="closeMobileMenu">
+              <span class="game-title">云崩坏:星穹铁道（需米哈游账号）</span>
+            </a>
+            
+            <!-- 4399云游戏 -->
+            <div class="dropdown-subsection-title">4399云游戏</div>
+            <a href="https://y.4399.com/detail/1?from=1" target="_blank" class="dropdown-item" @click="closeMobileMenu">
+              <span class="game-title">云原神（需4399账号和米哈游账号）</span>
             </a>
             <a href="https://y.4399.com/detail/124?from=1" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">云绝区零（需4399账号和米哈游账号）</span>
@@ -104,20 +116,29 @@
             <a href="https://y.4399.com/detail/34?from=1#search3-a254" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">云崩坏:星穹铁道（需4399账号和米哈游账号）</span>
             </a>
-            <a href="https://sr.mihoyo.com/cloud/#/" target="_blank" class="dropdown-item" @click="closeMobileMenu">
-              <span class="game-title">云崩坏:星穹铁道（需米哈游账号）</span>
-            </a>
             
-            <!-- 下载链接 -->
-            <div class="dropdown-section-title">下载资源</div>
+            <!-- 下载游戏资源 -->
+            <div class="dropdown-section-title">下载游戏资源</div>
+            
+            <!-- 游戏客户端 -->
+            <div class="dropdown-subsection-title">游戏客户端</div>
             <a href="https://dl.4399ytzg2.com/myp/game/wd/hxjy/ver3/4399%E7%81%AB%E7%BA%BF%E7%B2%BE%E8%8B%B1.exe?v=20251115" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">火线精英下载（Windows）</span>
             </a>
             <a href="https://dl.4399ytzg2.com/myp/game/wd/ssjj/4399%E7%94%9F%E6%AD%BB%E7%8B%99%E5%87%BB.exe?v=20251106&v=20251115" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">生死狙击下载（Windows）</span>
             </a>
+            
+            <!-- 工具软件 -->
+            <div class="dropdown-subsection-title">工具软件</div>
             <a href="https://dl.4399ytzg2.com/microgame/360se+5000577+n761579be99.exe" target="_blank" class="dropdown-item" @click="closeMobileMenu">
               <span class="game-title">360浏览器</span>
+            </a>
+            
+            <!-- 独立游戏站点 -->
+            <div class="dropdown-section-title">独立游戏站点</div>
+            <a href="https://www.ra2web.com/" target="_blank" class="dropdown-item" @click="closeMobileMenu">
+              <span class="game-title">红警</span>
             </a>
           </div>
         </div>
@@ -552,6 +573,17 @@ body.menu-open {
   margin-bottom: 4px;
   border-bottom: 1px solid rgba(66, 133, 244, 0.2);
   background: rgba(66, 133, 244, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dropdown-subsection-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #34A853;
+  padding: 8px 20px 4px 20px;
+  margin: 6px 0 3px;
+  border-left: 3px solid #34A853;
+  background: rgba(52, 168, 83, 0.05);
   backdrop-filter: blur(10px);
 }
 
