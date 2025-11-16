@@ -218,7 +218,7 @@ export const useGameStore = defineStore('game', {
         {
           name: 'Getting Over It v1.4',
           type: '冒险',
-          platform: 'Web',
+          platform: 'Web,移动端',
           description: '一款充满哲学意味的攀岩游戏。你将控制一个坐在缸里的人，用锤子攀爬各种地形。',
           tags: ['冒险', '挑战性', '物理'],
           popularity: 85,
@@ -266,7 +266,7 @@ export const useGameStore = defineStore('game', {
         {
           name: 'GunTower',
           type: '射击',
-          platform: 'Web',
+          platform: 'Web,移动端',
           description: '塔防射击游戏，建造防御塔，阻止敌人入侵你的基地。',
           tags: ['射击', '塔防', '策略', '免费'],
           popularity: 80,
@@ -291,7 +291,7 @@ export const useGameStore = defineStore('game', {
         {
           name: 'GunTower-Endless',
           type: '射击',
-          platform: 'Web',
+          platform: 'Web,移动端',
           description: 'GunTower的无尽模式版本，挑战你的极限生存能力。',
           tags: ['射击', '塔防', '无尽', '免费'],
           popularity: 82,
@@ -316,7 +316,7 @@ export const useGameStore = defineStore('game', {
         {
           name: 'Hill Climb Racing v1.0',
           type: '竞速',
-          platform: 'Web,移动端',
+          platform: 'Web',
           description: '攀爬赛车游戏，驾驶各种车辆在崎岖的山路上行驶，收集金币。',
           tags: ['竞速', '物理', '休闲', '免费'],
           popularity: 88,

@@ -1,45 +1,112 @@
 /* 游戏门户网站深色主题样式 */
 :root {
-  /* 主题颜色变量 */
-  --primary-bg: #1A1A2E;
-  --secondary-bg: #16213E;
-  --card-bg: #0F3460;
-  --surface-bg: #1E1E2E;
-  --text-primary: #F0F0F0;
-  --text-secondary: #A0A0A0;
-  --text-muted: #707070;
-  --accent-primary: #9D4EDD; /* 亮紫色 */
-  --accent-secondary: #4CC9F0; /* 亮绿色 */
-  --accent-success: #34D399;
-  --accent-warning: #FBBF24;
-  --accent-error: #EF4444;
-  --border-color: #2A2A4E;
-  --hover-bg: #2A2A4E;
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  /* 主题色彩 - 深色主题优化版 */
+  --bg-primary: #0A0C14;
+  --bg-secondary: #12141E;
+  --bg-tertiary: #1A1D2C;
+  --card-bg: #1A1D2C;
+  --surface-bg: #12141E;
   
-  /* 字体和排版 */
+  /* 表面颜色 */
+  --surface-hover: #1A1D2C;
+  --surface-active: #212436;
+  
+  /* 文本颜色 */
+  --text-primary: #FFFFFF;
+  --text-secondary: #D1D5DB;
+  --text-muted: #9CA3AF;
+  --text-disabled: #4B5563;
+  
+  /* 边框颜色 */
+  --border-color: #212436;
+  --border-hover: #2D3748;
+  --border-active: #4A5568;
+  
+  /* 强调色系统 - 统一的品牌色系 */
+  --accent-primary: #4285F4;
+  --accent-primary-dark: #2B70E4;
+  --accent-primary-light: #5EA1FF;
+  
+  --accent-secondary: #34A853;
+  --accent-secondary-dark: #2D8F45;
+  --accent-secondary-light: #4ED86A;
+  
+  --accent-tertiary: #FBBC05;
+  --accent-tertiary-dark: #E0A505;
+  --accent-tertiary-light: #FFD044;
+  
+  --accent-danger: #EA4335;
+  --accent-danger-dark: #CF3528;
+  --accent-danger-light: #FF5A4A;
+  
+  /* 状态颜色 */
+  --accent-success: var(--accent-secondary);
+  --accent-warning: var(--accent-tertiary);
+  --accent-error: var(--accent-danger);
+  
+  /* 交互背景 */
+  --hover-bg: rgba(255, 255, 255, 0.07);
+  --focus-bg: rgba(66, 133, 244, 0.15);
+  --active-bg: rgba(255, 255, 255, 0.12);
+  
+  /* 阴影系统 - 增强层次感 */
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 8px var(--shadow-color);
+  --shadow-md: 0 4px 16px var(--shadow-color);
+  --shadow-lg: 0 8px 24px var(--shadow-color);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 15px rgba(66, 133, 244, 0.3);
+  --shadow-glow-danger: 0 0 15px rgba(234, 67, 53, 0.3);
+  
+  /* 圆角系统 */
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-2xl: 24px;
+  --border-radius-full: 9999px;
+  
+  /* 间距系统 */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* 过渡动画系统 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* 字体系统 */
   font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   
-  /* 过渡动画 */
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
+  /* 字重系统 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
   
-  /* 圆角 */
-  --border-radius-sm: 6px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  
-  /* 阴影 */
-  --shadow-sm: 0 2px 8px var(--shadow-color);
-  --shadow-md: 0 4px 16px var(--shadow-color);
-  --shadow-lg: 0 8px 24px var(--shadow-color);
+  /* 透明度 */
+  --opacity-0: 0;
+  --opacity-5: 0.05;
+  --opacity-10: 0.1;
+  --opacity-20: 0.2;
+  --opacity-30: 0.3;
+  --opacity-40: 0.4;
+  --opacity-50: 0.5;
+  --opacity-60: 0.6;
+  --opacity-70: 0.7;
+  --opacity-80: 0.8;
+  --opacity-90: 0.9;
+  --opacity-100: 1;
   
   /* 其他全局设置 */
   color: var(--text-primary);
-  background-color: var(--primary-bg);
+  background-color: var(--bg-primary);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

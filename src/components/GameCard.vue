@@ -466,20 +466,31 @@ initFavoriteStatus()
   border-radius: 16px;
   overflow: hidden;
   position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   border: 1px solid var(--border-color);
   height: 100%;
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(8px);
+  will-change: transform, box-shadow;
 }
 
 .game-card:hover,
 .game-card.hovered {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-10px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 0 20px rgba(66, 133, 244, 0.15);
   border-color: var(--accent-primary);
-  background: linear-gradient(135deg, var(--surface-bg) 0%, rgba(255, 255, 255, 0.1) 100%);
+  background: linear-gradient(135deg, var(--surface-bg) 0%, rgba(255, 255, 255, 0.12) 100%);
+}
+
+/* 收藏状态的特殊样式 */
+.game-card.favorite {
+  border-color: #FF4757;
+  box-shadow: 0 8px 30px rgba(255, 71, 87, 0.15);
+}
+
+.game-card.favorite:hover {
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 71, 87, 0.3);
 }
 
 .card-link {
@@ -534,11 +545,43 @@ initFavoriteStatus()
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-normal);
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.4s ease;
+  opacity: 0;
+  animation: fadeInPoster 0.5s ease forwards;
+}
+
+@keyframes fadeInPoster {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .game-card:hover .game-poster {
-  transform: scale(1.05);
+  transform: scale(1.1);
+  filter: brightness(1.1) contrast(1.05);
+}
+
+/* 图片加载失败状态 */
+.game-poster.error {
+  filter: grayscale(50%) blur(1px);
+}
+
+/* 海报容器添加渐变遮罩 */
+.poster-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to top, var(--surface-bg), transparent);
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* 骨架屏 */
@@ -630,13 +673,15 @@ initFavoriteStatus()
   color: var(--text-muted);
   border-radius: 9999px;
   border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   user-select: none;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(4px);
 }
 
+/* 标签发光效果 */
 .game-tag::before {
   content: '';
   position: absolute;
@@ -644,7 +689,7 @@ initFavoriteStatus()
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   transition: left 0.5s ease;
 }
 
@@ -656,7 +701,14 @@ initFavoriteStatus()
   background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
   color: white;
   border-color: transparent;
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 6px 16px rgba(66, 133, 244, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: 20;
+}
+
+/* 标签点击效果 */
+.game-tag:active {
+  transform: translateY(-1px) scale(1.05);
   box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
 }
 
@@ -854,7 +906,7 @@ initFavoriteStatus()
   color: white;
   border: none;
   border-radius: 9999px;
-  padding: 0.625rem 1.75rem;
+  padding: 0.75rem 2rem;
   font-size: 0.875rem;
   font-weight: 700;
   display: flex;
@@ -867,6 +919,26 @@ initFavoriteStatus()
   box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
   position: relative;
   overflow: hidden;
+  min-width: 140px;
+  justify-content: center;
+}
+
+/* 按钮发光效果 */
+.play-game-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.play-game-btn:hover::after {
+  opacity: 1;
 }
 
 .play-game-btn::before {
@@ -876,7 +948,7 @@ initFavoriteStatus()
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   transition: left 0.6s ease;
 }
 
@@ -884,21 +956,53 @@ initFavoriteStatus()
   left: 100%;
 }
 
+/* 悬停时显示按钮 */
 .game-card:hover .play-game-btn,
 .game-card.hovered .play-game-btn {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  animation: bounceIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-5px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 }
 
 .play-game-btn:hover {
-  transform: translateX(-50%) translateY(-4px) scale(1.05);
-  box-shadow: 0 10px 28px rgba(66, 133, 244, 0.5);
+  transform: translateX(-50%) translateY(-6px) scale(1.08);
+  box-shadow: 0 12px 32px rgba(66, 133, 244, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, #3367D6 0%, #2A8A47 100%);
 }
 
 .play-game-btn:active {
-  transform: translateX(-50%) translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+  transform: translateX(-50%) translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(66, 133, 244, 0.5);
+}
+
+/* 加载状态 */
+.play-game-btn.loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+.play-game-btn.loading svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 触摸设备优化 */

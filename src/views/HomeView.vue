@@ -7,13 +7,23 @@
 
     <!-- 搜索框 - 所有设备都显示 -->
     <div class="search-container">
-      <input 
-        v-model="searchQuery" 
-        type="text" 
-        placeholder="搜索游戏名称、类型或描述..."
-        class="search-input"
-        @input="handleSearch"
-      >
+      <div class="search-wrapper">
+        <input 
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="搜索游戏名称、类型或描述..."
+          class="search-input"
+          @input="handleSearch"
+        >
+        <button 
+          v-if="searchQuery.trim()" 
+          class="clear-search-btn"
+          @click="clearSearch"
+          aria-label="清除搜索"
+        >
+          ✕
+        </button>
+      </div>
     </div>
 
     <!-- 热门标签 -->
@@ -161,6 +171,12 @@ const handleSearch = () => {
   currentPage.value = 1
 }
 
+// 清除搜索
+const clearSearch = () => {
+  searchQuery.value = ''
+  currentPage.value = 1
+}
+
 // 处理标签点击（来自GameCard组件）
 const handleTagClick = (tag) => {
   toggleTag(tag)
@@ -260,40 +276,68 @@ onUnmounted(() => {
 .page-header {
   text-align: center;
   margin-bottom: 40px;
-  padding: 30px 20px;
+  padding: 40px 20px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 添加装饰元素 */
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
 }
 
 .page-header h1 {
-  font-size: 2.5rem;
+  font-size: 2.7rem;
   margin-bottom: 15px;
   color: #2c3e50;
-  font-weight: 700;
+  font-weight: 800;
   background: linear-gradient(45deg, #4285F4, #34A853);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.5px;
+  transition: all 0.3s ease;
+}
+
+.page-header:hover h1 {
+  transform: scale(1.02);
 }
 
 .page-header p {
   color: #555;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 500;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 /* 搜索框样式 */
 .search-container {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
 
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .search-input {
   width: 100%;
   padding: 14px 24px;
+  padding-right: 50px; /* 为清除按钮留出空间 */
   border: 2px solid #e0e0e0;
   border-radius: 30px;
   font-size: 1rem;
@@ -309,21 +353,53 @@ onUnmounted(() => {
 
 .search-input:focus {
   border-color: #4285F4;
-  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
   transform: translateY(-1px);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #f0f0f0;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  background-color: #e0e0e0;
+  color: #333;
 }
 
 /* 移动端搜索框优化 */
 @media (max-width: 768px) {
   .search-container {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     max-width: 100%;
   }
   
   .search-input {
-    padding: 12px 20px;
-    font-size: 0.9rem;
+    padding: 13px 20px;
+    padding-right: 45px;
+    font-size: 0.95rem;
     border-radius: 25px;
+  }
+  
+  .clear-search-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    right: 10px;
   }
 }
 
@@ -331,9 +407,10 @@ onUnmounted(() => {
 .tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: 12px;
+  margin-bottom: 35px;
   justify-content: center;
+  padding: 0 20px;
 }
 
 .tag {
@@ -368,17 +445,19 @@ onUnmounted(() => {
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 28px;
   margin-bottom: 40px;
+  padding: 10px;
 }
 
 /* 添加卡片过渡动画 */
 .games-grid > * {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
 }
 
 .games-grid > *:hover {
-  transform: translateY(-5px);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
 /* 加载状态 */
@@ -499,12 +578,13 @@ onUnmounted(() => {
   }
   
   .page-header {
-    padding: 20px 15px;
+    padding: 25px 15px;
     margin-bottom: 30px;
+    border-radius: 12px;
   }
   
   .page-header h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
   
   .page-header p {
@@ -514,15 +594,17 @@ onUnmounted(() => {
   .games-grid,
   .loading-state {
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 20px;
+    padding: 5px;
   }
   
   .tags-container {
-    gap: 8px;
+    gap: 10px;
+    padding: 0 15px;
   }
   
   .tag {
-    padding: 8px 16px;
+    padding: 9px 18px;
     font-size: 0.9rem;
   }
 }

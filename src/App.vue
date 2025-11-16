@@ -27,20 +27,19 @@ import NavBar from './components/NavBar.vue'
   box-sizing: border-box;
 }
 
-:root {
-  --bg-primary: #121212;
-  --bg-secondary: #1e1e1e;
-  --text-primary: #F0F0F0;
-  --text-secondary: #A0A0A0;
-  --accent-color: #4285F4;
-  --border-color: #333;
-}
+/* 移除组件内的重复变量定义，使用全局样式系统 */
+/* 组件样式将完全依赖style.css中的变量定义 */
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-primary);
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   color: var(--text-primary);
-  line-height: 1.6;
+  font-family: var(--font-family);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 .app-container {
@@ -54,6 +53,7 @@ body {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  padding: 0 var(--spacing-lg, 1.5rem);
 }
 
 .app-footer {
