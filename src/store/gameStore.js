@@ -171,7 +171,7 @@ export const useGameStore = defineStore('game', {
           name: '超级马里奥',
           type: '动作',
           platform: 'Web',
-          description: '经典的超级马里奥游戏，带你回到童年的回忆。控制马里奥跳跃、顶砖块，收集金币，拯救公主！',
+          description: '经典的超级马里奥游戏，带你回到童年的回忆。控制马里奥跳跃、顶砖块，收集金币！',
           tags: ['经典', '动作', '平台跳跃', '免费'],
           popularity: 95,
           features: [
@@ -244,7 +244,7 @@ export const useGameStore = defineStore('game', {
           name: 'Appel v1.4',
           type: '休闲',
           platform: 'Web',
-          description: '一款简约风格的休闲游戏，点击屏幕让球跳跃，收集苹果获取分数。',
+          description: '一款简约风格的休闲游戏，按方向键使方块移动，收集苹果获取分数。',
           tags: ['休闲', '简约', '免费'],
           popularity: 75,
           features: [
