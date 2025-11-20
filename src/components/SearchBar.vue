@@ -581,8 +581,14 @@ onMounted(() => {
   color: var(--text-secondary, #A0A0A0);
   line-height: 1.3;
   display: -webkit-box;
+  display: -moz-box;
+  display: box;
   -webkit-line-clamp: 1;
+  -moz-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  box-orient: vertical;
   overflow: hidden;
 }
 
