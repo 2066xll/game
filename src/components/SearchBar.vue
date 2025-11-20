@@ -396,7 +396,7 @@ onMounted(() => {
   border-radius: var(--border-radius-full, 30px);
   border: 2px solid var(--border-color, #333);
   background-color: var(--surface-bg, #2A2A3E);
-  color: var(--text-primary, #F0F0F0);
+  color: #F0F0F0; /* 确保默认颜色始终可见 */
   font-size: 16px;
   outline: none;
   transition: all var(--transition-fast, 0.3s ease);
