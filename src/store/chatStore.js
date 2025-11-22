@@ -354,14 +354,14 @@ export const useChatStore = defineStore('chat', {
           this.wsReconnectAttempts = 0
           
           // 发送加入所有群组的消息
-          this.groups.forEach(group => {
-            if (this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
-              this.wsConnection.send(JSON.stringify({
-                type: 'join_group',
-                data: { groupId: group.id }
-              }))
-            }
-          })
+        this.groups.forEach(group => {
+          if (this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
+            this.wsConnection.send(JSON.stringify({
+              type: 'join_group',
+              data: { groupId: group.id }
+            }))
+          }
+        })
         }
         
         this.wsConnection.onmessage = (event) => {
@@ -524,7 +524,7 @@ export const useChatStore = defineStore('chat', {
           type: 'typing_status',
           data: {
             groupId: this.currentGroup.id,
-            isTyping
+            isTyping: isTyping
           }
         }))
       }

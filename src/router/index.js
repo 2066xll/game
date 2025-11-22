@@ -5,6 +5,8 @@ import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import GroupManagementView from '../views/GroupManagementView.vue'
 import ChatView from '../views/ChatView.vue'
+import TestView from '../views/TestView.vue'
+import ChatTestView from '../views/ChatTestView.vue'
 
 const routes = [
   {
@@ -43,6 +45,16 @@ const routes = [
     component: ChatView,
     meta: { requiresAuth: true },
     props: true
+  },
+  {
+    path: '/test',
+    name: 'test',
+    component: TestView
+  },
+  {
+    path: '/chat-test',
+    name: 'chat-test',
+    component: ChatTestView
   }
 ]
 

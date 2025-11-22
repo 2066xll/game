@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { ApiError, ValidationError } from '../utils/ErrorHandler.js'
+import ErrorHandler from '../utils/ErrorHandler.js'
 import { Logger } from '../utils/Logger.js'
 
 const logger = new Logger('AuthStore')
+const errorHandler = ErrorHandler
 
 // 从环境变量获取API基础URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/auth'
@@ -101,13 +103,23 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       
       try {
+        // 密码强度验证
+        if (!password || password.length < 8) {
+          throw new ValidationError('密码长度至少为8位')
+        }
+        
+        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/.test(password)) {
+          throw new ValidationError('密码必须包含字母和数字')
+        }
+        
         const response = await authApi.post('/register', { password })
         // 确保返回正确的数据格式
         const data = response.data || response
-        logger.info('用户注册成功', { userCode: data.userCode })
+        
+        logger.info('用户注册成功', { userCode: data.userCode || data.user?.user_code })
         return data
       } catch (error) {
-        this.error = error.message
+        this.error = error.message || '注册失败，请稍后重试'
         errorHandler.handleError('用户注册失败', error)
         throw error
       } finally {
@@ -121,16 +133,25 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       
       try {
-        const response = await authApi.post('/login', {
-          identifier, // 可以是用户编码或邮箱
-          password
-        })
+        // 输入验证
+        if (!identifier || !password) {
+          throw new ValidationError('请输入用户名/邮箱和密码')
+        }
+        
+        // 区分登录方式（用户编码为6位数字，邮箱包含@符号）
+        const loginData = {
+          identifier,
+          password,
+          loginType: /^\d{6}$/.test(identifier) ? 'user_code' : 'email'
+        }
+        
+        const response = await authApi.post('/login', loginData)
         
         // 确保响应数据格式正确
         const data = response.data || response
         const { token, user } = data
         
-        // 保存到本地存储
+        // 安全保存到本地存储
         localStorage.setItem('auth_token', token)
         localStorage.setItem('user_info', JSON.stringify(user))
         
@@ -139,10 +160,10 @@ export const useAuthStore = defineStore('auth', {
         this.user = user
         this.isAuthenticated = true
         
-        logger.info('用户登录成功', { userId: user.id, userCode: user.user_code })
+        logger.info('用户登录成功', { userId: user.id, userCode: user.user_code, loginType: loginData.loginType })
         return user
       } catch (error) {
-        this.error = error.message
+        this.error = error.message || '登录失败，请稍后重试'
         errorHandler.handleError('用户登录失败', error)
         throw error
       } finally {
@@ -202,14 +223,23 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       
       try {
+        // 邮箱格式验证
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          throw new ValidationError('请输入有效的邮箱地址')
+        }
+        
         const response = await authApi.put('/email', { email })
         const data = response.data || response
-        this.user.email = data.email
+        
+        // 更新用户信息
+        this.user.email = data.email || email
         localStorage.setItem('user_info', JSON.stringify(this.user))
-        logger.info('邮箱绑定成功', { email })
+        
+        logger.info('邮箱绑定成功', { email, userId: this.user.id })
         return data
       } catch (error) {
-        this.error = error.message
+        this.error = error.message || '邮箱绑定失败，请稍后重试'
         errorHandler.handleError('绑定邮箱失败', error)
         throw error
       } finally {
@@ -259,15 +289,44 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       
       try {
+        // 输入验证
+        if (!currentPassword || !newPassword) {
+          throw new ValidationError('请输入当前密码和新密码')
+        }
+        
+        // 新密码强度验证
+        if (newPassword.length < 8) {
+          throw new ValidationError('新密码长度至少为8位')
+        }
+        
+        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/.test(newPassword)) {
+          throw new ValidationError('新密码必须包含字母和数字')
+        }
+        
+        // 避免使用与当前密码相同的新密码
+        if (currentPassword === newPassword) {
+          throw new ValidationError('新密码不能与当前密码相同')
+        }
+        
         const response = await authApi.post('/change-password', {
           currentPassword,
           newPassword
         })
+        
         const data = response.data || response
-        logger.info('密码修改成功')
+        
+        // 密码修改成功后可以考虑刷新令牌
+        try {
+          await this.refreshToken()
+        } catch (refreshError) {
+          logger.warn('密码修改后刷新令牌失败', refreshError)
+          // 不阻止主流程
+        }
+        
+        logger.info('密码修改成功', { userId: this.user?.id })
         return data
       } catch (error) {
-        this.error = error.message
+        this.error = error.message || '密码修改失败，请稍后重试'
         errorHandler.handleError('修改密码失败', error)
         throw error
       } finally {

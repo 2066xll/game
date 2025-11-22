@@ -102,11 +102,11 @@ export const useGameStore = defineStore('game', {
         // 设置用户友好的错误信息
         this.error = error.message || '加载游戏数据失败'
         
-        // 抛出标准化的错误
+        // 抛出标准化的错误，使用500作为默认状态码
         ErrorHandler.throwApiError(
           '无法加载游戏数据', 
           'GAME_LOAD_ERROR', 
-          handledError.error.statusCode
+          error.status || 500
         )
       } finally {
         this.loading = false

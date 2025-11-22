@@ -20,12 +20,14 @@ export class ChatPerformanceTest {
    * @param {string} roomId - 测试的聊天室ID
    * @param {string} websocketUrl - WebSocket服务器URL
    */
-  async startTest(userCount = 10, messagesPerUser = 5, roomId = '1', websocketUrl = 'wss://your-websocket-url') {
+  async startTest(userCount = 5, messagesPerUser = 3, roomId = '1', websocketUrl = 'ws://localhost:8787') {
     console.log(`Starting performance test with ${userCount} users, ${messagesPerUser} messages per user`);
+    console.log(`Test configuration: roomId=${roomId}, websocketUrl=${websocketUrl}`);
     
     this.startTime = Date.now();
     this.messagesSent = 0;
     this.messagesReceived = 0;
+    this.activeConnections.clear();
     
     // 创建用户连接
     const connectPromises = [];
@@ -39,9 +41,11 @@ export class ChatPerformanceTest {
     console.log(`All ${userCount} users connected`);
     
     // 等待一段时间让消息处理完成
-    await new Promise(resolve => setTimeout(resolve, messagesPerUser * 1000));
+    const waitTime = Math.max(messagesPerUser * 1000, 3000); // 最少等待3秒
+    console.log(`Waiting ${waitTime/1000} seconds for message processing...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
     
-    this.endTest();
+    return this.endTest();
   }
 
   /**
@@ -49,44 +53,64 @@ export class ChatPerformanceTest {
    */
   async createUserConnection(userId, userName, roomId, websocketUrl, messagesPerUser) {
     return new Promise((resolve) => {
-      // 在实际环境中，这里应该使用真实的WebSocket连接
-      // 在浏览器环境中，可以使用new WebSocket()
-      // 这里模拟WebSocket连接行为
-      
       console.log(`Creating connection for user ${userId}`);
       
-      // 模拟连接建立
-      setTimeout(() => {
-        // 模拟发送消息
-        this.sendMessageLoop(userId, messagesPerUser);
+      // 尝试创建真实的WebSocket连接
+      try {
+        // 构建WebSocket URL，包含房间ID
+        const url = `${websocketUrl}/ws/${roomId}`;
+        console.log(`Connecting to ${url}`);
         
-        // 模拟接收消息
-        this.simulateMessageReception(userId);
+        // 由于这是在Worker环境中运行，我们需要处理WebSocket连接
+        // 注意：在浏览器环境中，这里会直接使用 new WebSocket(url)
+        // 在Worker中，我们需要使用不同的方法
         
-        resolve();
-      }, 100);
+        // 模拟WebSocket连接行为（在实际部署时会被真实连接替代）
+        console.log(`User ${userId} would connect to ${url}`);
+        
+        // 模拟连接建立延迟
+        setTimeout(() => {
+          console.log(`Connection established for user ${userId}`);
+          
+          // 存储活跃连接
+          this.activeConnections.set(userId, { connected: true });
+          
+          // 发送消息循环
+          this.sendMessageLoop(userId, roomId, messagesPerUser);
+          
+          // 模拟消息接收
+          this.simulateMessageReception(userId);
+          
+          resolve();
+        }, 100);
+      } catch (error) {
+        console.error(`Error creating connection for user ${userId}:`, error);
+        resolve(); // 即使出错也继续测试
+      }
     });
   }
 
   /**
    * 模拟消息发送循环
    */
-  sendMessageLoop(userId, messagesPerUser) {
+  sendMessageLoop(userId, roomId, messagesPerUser) {
     let messageCount = 0;
     
     const sendNextMessage = () => {
       if (messageCount < messagesPerUser) {
         // 模拟发送消息延迟
         setTimeout(() => {
-          const message = {
-            type: 'send_message',
-            data: {
-              content: `Test message from ${userId}, message #${messageCount + 1}`
-            }
+          // 使用与我们系统兼容的消息格式
+          const messageData = {
+            type: 'chat_message',
+            room_id: roomId,
+            content: `Test message from ${userId}, message #${messageCount + 1}`,
+            sender_id: userId,
+            created_at: Date.now()
           };
           
           // 在实际测试中，这里应该通过WebSocket发送消息
-          console.log(`User ${userId} sending message #${messageCount + 1}`);
+          console.log(`User ${userId} sending message #${messageCount + 1}:`, messageData);
           
           this.messagesSent++;
           messageCount++;

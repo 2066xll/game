@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import VueLazyload from 'vue-lazyload'
+import { useAuthStore } from './store/authStore.js'
+import { useChatStore } from './store/chatStore.js'
 import './style.css'
 import App from './App.vue'
 
@@ -52,9 +54,11 @@ let setupRouterGuard = false
 function setupGuard() {
   if (setupRouterGuard) return
   
+  // 初始化store实例
+  const authStore = useAuthStore()
+  const chatStore = useChatStore()
+  
   router.beforeEach((to, from, next) => {
-    const authStore = useAuthStore()
-    
     // 检查路由是否需要认证
     if (to.meta.requiresAuth === true && !authStore.isAuthenticated) {
       // 需要认证但未登录，跳转到登录页

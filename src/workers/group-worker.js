@@ -1,9 +1,9 @@
 // Cloudflare Worker for Chat Group Management
 import { verifyToken } from './utils/auth.js'
-import { Database } from './database/db.js'
+import { createDbInstance } from './database/db.js'
 
 // 创建数据库实例
-const db = new Database(env.DB)
+const db = createDbInstance(env)
 
 // 处理CORS
 const corsHeaders = {

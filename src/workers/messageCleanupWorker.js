@@ -28,12 +28,12 @@ export default {
    */
   async cleanupExpiredMessages(db) {
     try {
-      // 计算24小时前的时间戳
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      // 计算24小时前的时间戳（使用毫秒级时间戳）
+      const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
       
-      // 执行清理操作
+      // 执行清理操作，使用正确的表名chat_messages
       const result = await db.prepare(
-        'DELETE FROM messages WHERE created_at < ?'
+        'DELETE FROM chat_messages WHERE created_at < ?'
       ).bind(twentyFourHoursAgo).run();
       
       console.log(`Cleaned up ${result.meta.changes || 0} expired messages`);
