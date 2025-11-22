@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import ErrorHandler from '../utils/ErrorHandler.js'
 
 // 简单的控制台日志函数
 const log = {
@@ -14,7 +15,11 @@ export const useGameStore = defineStore('game', {
     // 缓存搜索结果，提高性能
     _searchCache: new Map(),
     // 索引游戏名称，提高搜索效率
-    _gameNameIndex: new Map()
+    _gameNameIndex: new Map(),
+    // 缓存热门游戏列表
+    _popularGamesCache: null,
+    // 缓存游戏统计信息
+    _gamesStatsCache: null
   }),
 
   getters: {
@@ -126,11 +131,11 @@ export const useGameStore = defineStore('game', {
 
     // 根据名称获取游戏（优化版本）
     getGameByName(name) {
-      gameLogger.debug(`查找游戏: ${name}`)
+      log.info(`查找游戏: ${name}`)
       
       // 参数验证
       if (!name || typeof name !== 'string') {
-        gameLogger.warn('无效的游戏名称参数')
+        log.error('无效的游戏名称参数')
         return null
       }
       
@@ -138,7 +143,7 @@ export const useGameStore = defineStore('game', {
         // 使用索引直接查找，O(1) 时间复杂度
         const exactMatch = this._gameNameIndex.get(name.toLowerCase())
         if (exactMatch && exactMatch.name === name) {
-          gameLogger.debug(`找到游戏: ${name}`)
+          log.info(`找到游戏: ${name}`)
           return exactMatch
         }
         
@@ -146,14 +151,14 @@ export const useGameStore = defineStore('game', {
         const game = this.games.find(game => game.name === name)
         
         if (game) {
-          gameLogger.debug(`找到游戏: ${name}`)
+          log.info(`找到游戏: ${name}`)
         } else {
-          gameLogger.debug(`未找到游戏: ${name}`)
+          log.info(`未找到游戏: ${name}`)
         }
         
         return game
       } catch (error) {
-        gameLogger.error(`查找游戏失败: ${name}`, error)
+        log.error(`查找游戏失败: ${name}`, error)
         return null
       }
     },
@@ -364,11 +369,11 @@ export const useGameStore = defineStore('game', {
 
     // 高级搜索功能（优化版本）
     searchGames(query) {
-      gameLogger.debug(`执行高级搜索: ${query}`)
+      log.info(`执行高级搜索: ${query}`)
       
       try {
         if (!query || query.trim() === '') {
-          gameLogger.debug('搜索查询为空，返回空结果')
+          log.info('搜索查询为空，返回空结果')
           return []
         }
         
@@ -380,7 +385,7 @@ export const useGameStore = defineStore('game', {
           const cached = this._searchCache.get(cacheKey)
           // 缓存有效期5分钟
           if (Date.now() - cached.timestamp < 300000) {
-            gameLogger.debug(`从缓存返回搜索结果: ${searchTerm}`)
+            log.info(`从缓存返回搜索结果: ${searchTerm}`)
             return cached.data
           }
         }
@@ -468,10 +473,10 @@ export const useGameStore = defineStore('game', {
         this._searchCache.delete(firstKey)
       }
       
-      gameLogger.debug(`搜索完成: "${searchTerm}", 找到${sortedResults.length}个结果`)
+      log.info(`搜索完成: "${searchTerm}", 找到${sortedResults.length}个结果`)
       return sortedResults
     } catch (error) {
-      gameLogger.error(`搜索失败: ${query}`, error)
+      log.error(`搜索失败: ${query}`, error)
       // 发生错误时返回空数组，确保应用不会崩溃
       return []
     }
@@ -479,7 +484,7 @@ export const useGameStore = defineStore('game', {
     
     // 获取搜索建议（优化版本）
     getSearchSuggestions(query, limit = 5) {
-      gameLogger.debug(`获取搜索建议: ${query}, 限制数量: ${limit}`)
+      log.info(`获取搜索建议: ${query}, 限制数量: ${limit}`)
       
       try {
         // 参数验证
@@ -488,7 +493,7 @@ export const useGameStore = defineStore('game', {
         if (limit > 50) limit = 50 // 设置最大限制
         
         if (!query || query.trim().length < 2) {
-          gameLogger.debug('搜索查询为空或过短，返回空结果')
+          log.info('搜索查询为空或过短，返回空结果')
           return []
         }
         
@@ -500,7 +505,7 @@ export const useGameStore = defineStore('game', {
           const cached = this._searchCache.get(cacheKey)
           // 搜索建议缓存有效期更短，1分钟
           if (Date.now() - cached.timestamp < 60000) {
-            gameLogger.debug(`从缓存返回搜索建议: ${searchTerm}`)
+            log.info(`从缓存返回搜索建议: ${searchTerm}`)
             return cached.data
           }
         }
@@ -536,10 +541,10 @@ export const useGameStore = defineStore('game', {
             timestamp: Date.now()
           })
           
-          gameLogger.debug(`搜索建议生成完成: "${searchTerm}", 生成${result.length}个建议`)
+          log.info(`搜索建议生成完成: "${searchTerm}", 生成${result.length}个建议`)
           return result
         } catch (error) {
-          gameLogger.error(`生成搜索建议失败: ${query}`, error)
+          log.error(`生成搜索建议失败: ${query}`, error)
           // 发生错误时返回空数组，确保应用不会崩溃
           return []
         }
@@ -547,7 +552,7 @@ export const useGameStore = defineStore('game', {
     
     // 批量搜索（多关键词优化版）
     searchGamesByKeywords(keywords) {
-      gameLogger.debug(`批量关键词搜索: ${JSON.stringify(keywords)}`)
+      log.info(`批量关键词搜索: ${JSON.stringify(keywords)}`)
       
       try {
         if (!keywords || keywords.length === 0) {
@@ -559,7 +564,7 @@ export const useGameStore = defineStore('game', {
         if (this._searchCache.has(cacheKey)) {
           const cached = this._searchCache.get(cacheKey)
           if (Date.now() - cached.timestamp < 300000) {
-            gameLogger.debug(`从缓存返回关键词搜索结果: ${cacheKey}`)
+            log.info(`从缓存返回关键词搜索结果: ${cacheKey}`)
             return cached.data
           }
         }
@@ -602,10 +607,10 @@ export const useGameStore = defineStore('game', {
         timestamp: Date.now()
       })
       
-      gameLogger.debug(`关键词搜索完成: ${JSON.stringify(keywords)}, 找到${results.length}个结果`)
+      log.info(`关键词搜索完成: ${JSON.stringify(keywords)}, 找到${results.length}个结果`)
       return results
     } catch (error) {
-      gameLogger.error(`关键词搜索失败: ${JSON.stringify(keywords)}`, error)
+      log.error(`关键词搜索失败: ${JSON.stringify(keywords)}`, error)
       // 发生错误时返回空数组，确保应用不会崩溃
       return []
     }
@@ -613,16 +618,16 @@ export const useGameStore = defineStore('game', {
     
     // 获取搜索统计信息（优化版本，使用缓存的getter）
     getSearchStats() {
-      gameLogger.debug('获取搜索统计信息')
+      log.info('获取搜索统计信息')
       
       try {
         // 直接返回缓存的计算属性，避免重复计算
         const stats = this.gamesStats
         
-        gameLogger.debug(`搜索统计信息: ${JSON.stringify(stats)}`)
+        log.info(`搜索统计信息: ${JSON.stringify(stats)}`)
         return stats
       } catch (error) {
-        gameLogger.error('获取搜索统计信息失败', error)
+        log.error('获取搜索统计信息失败', error)
         // 发生错误时返回默认统计信息，确保应用不会崩溃
         return {
           totalGames: 0,

@@ -15,11 +15,11 @@ export const LOG_LEVELS = {
  * 日志记录器配置
  */
 const DEFAULT_CONFIG = {
-  level: process.env.NODE_ENV === 'production' ? LOG_LEVELS.INFO : LOG_LEVELS.DEBUG,
+  level: import.meta.env.MODE === 'production' ? LOG_LEVELS.INFO : LOG_LEVELS.DEBUG,
   enableConsole: true,
-  enableLocalStorage: process.env.NODE_ENV === 'development',
+  enableLocalStorage: import.meta.env.MODE === 'development',
   maxLogs: 100,
-  logToServer: process.env.NODE_ENV === 'production'
+  logToServer: import.meta.env.MODE === 'production'
 };
 
 /**

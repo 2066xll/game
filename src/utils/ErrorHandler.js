@@ -70,15 +70,16 @@ export class ErrorHandler {
     } else {
       // 对于非应用错误，转换为内部服务器错误
       appError = new AppError(
-        process.env.NODE_ENV === 'production' ? '服务器内部错误' : error.message,
+        import.meta.env.MODE === 'production' ? '服务器内部错误' : error.message,
         'INTERNAL_ERROR',
         500,
         false
       );
     }
     
-    // 构建错误响应
+    // 构造错误响应
     const errorResponse = {
+      success: false,
       error: {
         code: appError.errorCode,
         message: appError.message,
@@ -88,13 +89,13 @@ export class ErrorHandler {
     };
     
     // 开发环境包含堆栈信息
-    if (includeStackTrace && process.env.NODE_ENV !== 'production') {
+    if (includeStackTrace && import.meta.env.MODE !== 'production') {
       errorResponse.error.stack = error.stack;
     }
     
     return errorResponse;
   }
-  
+
   /**
    * 格式化API错误响应
    * @param {Error} error - 错误对象
@@ -107,7 +108,7 @@ export class ErrorHandler {
       ...handledError
     };
   }
-  
+
   /**
    * 记录错误日志
    * @param {Error} error - 错误对象
