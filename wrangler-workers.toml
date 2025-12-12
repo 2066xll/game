@@ -1,0 +1,106 @@
+# Cloudflare Workers配置文件
+name = "game-website"
+compatibility_date = "2025-11-22"
+
+# Auth Worker配置
+[env.auth-worker]
+type = "worker"
+name = "game-auth-worker"
+main = "src/workers/auth-worker.js"
+
+[[env.auth-worker.d1_databases]]
+binding = "DB"
+database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
+
+[[env.auth-worker.kv_namespaces]]
+binding = "SESSION_STORE"
+id = "3fb91ae014834e7e937314b377c268e5"
+preview_id = "f791ee4199d44e47a5650b868c0dab3d"
+
+[[env.auth-worker.kv_namespaces]]
+binding = "RATE_LIMIT_STORE"
+id = "3fb91ae014834e7e937314b377c268e5"
+preview_id = "f791ee4199d44e47a5650b868c0dab3d"
+
+# WebSocket Worker配置
+[env.websocket-worker]
+type = "worker"
+name = "game-chat-websocket-worker"
+main = "src/workers/websocket-worker.js"
+
+# 资源绑定
+vars = { ENVIRONMENT = "development" }
+
+[[env.websocket-worker.d1_databases]]
+binding = "DB"
+database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
+
+[[env.websocket-worker.kv_namespaces]]
+binding = "SESSION_STORE"
+id = "3fb91ae014834e7e937314b377c268e5"
+preview_id = "f791ee4199d44e47a5650b868c0dab3d"
+
+# websocket-worker的Durable Object配置
+[env.websocket-worker.durable_objects]
+
+# Durable Object绑定
+[[env.websocket-worker.durable_objects.bindings]]
+name = "AUTHORIZATION_DURABLE_OBJECT"
+class_name = "AuthorizationDurableObject"
+
+[[env.websocket-worker.durable_objects.bindings]]
+name = "CONVERSATION_DURABLE_OBJECT"
+class_name = "ConversationDurableObject"
+
+# Durable Object迁移配置 - 只用于websocket-worker
+[[env.websocket-worker.migrations]]
+tag = "v1"
+new_sqlite_classes = ["AuthorizationDurableObject", "ConversationDurableObject"]
+
+# Minimal WebSocket Worker环境配置
+[env.minimal-websocket-worker]
+type = "worker"
+name = "game-chat-minimal-websocket-worker"
+main = "src/workers/minimal-websocket-worker.js"
+
+# 资源绑定
+vars = { ENVIRONMENT = "development" }
+
+# 数据库绑定
+[[env.minimal-websocket-worker.d1_databases]]
+binding = "DB"
+database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
+
+# KV绑定
+[[env.minimal-websocket-worker.kv_namespaces]]
+binding = "SESSION_STORE"
+id = "3fb91ae014834e7e937314b377c268e5"
+preview_id = "f791ee4199d44e47a5650b868c0dab3d"
+
+# Durable Objects配置
+[env.minimal-websocket-worker.durable_objects]
+  # Durable Object绑定
+  bindings = [
+    { name = "CHAT_ROOM", class_name = "WebSocketRoom" }
+  ]
+
+# 消息清理Worker配置
+[env.message-cleanup-worker]
+type = "worker"
+name = "message-cleanup-worker"
+main = "src/workers/messageCleanupWorker.js"
+env = { CLEANUP_API_KEY = "message-cleanup-secret-key" }
+
+[[env.message-cleanup-worker.d1_databases]]
+binding = "DB"
+database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
+
+# KV命名空间配置
+[[env.message-cleanup-worker.kv_namespaces]]
+binding = "SESSION_STORE"
+id = "3fb91ae014834e7e937314b377c268e5"
+preview_id = "f791ee4199d44e47a5650b868c0dab3d"
+
+# 定时触发器配置（每小时执行一次清理）
+[env.message-cleanup-worker.triggers]
+routes = ["/__scheduled"]

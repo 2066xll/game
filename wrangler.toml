@@ -12,8 +12,8 @@ database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
 
 [[kv_namespaces]]
 binding = "SESSION_STORE"
-id = "0a46093b30dc43eb999c7ae4c3e94a83"
-preview_id = "620a37a62e7940c5b849e13837095c0b"
+id = "3fb91ae014834e7e937314b377c268e5"
+preview_id = "f791ee4199d44e47a5650b868c0dab3d"
 
 # Cloudflare Pages 配置
 [env.production]

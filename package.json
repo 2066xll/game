@@ -23,7 +23,7 @@
     "deploy:auth-worker": "wrangler deploy ./src/workers/auth-worker.js --name=game-auth-worker",
     "deploy:cleanup": "wrangler deploy --env message-cleanup-worker",
     "deploy:all": "npm run deploy && npm run deploy:worker && npm run deploy:auth-worker && npm run deploy:cleanup",
-    "login": "wrangler login",
+    "login": "cp .env.login .env && wrangler login",
     "setup": "npm install && npm run login",
     "wrangler:dev": "npx wrangler dev",
     "wrangler:preview": "npx wrangler preview"
