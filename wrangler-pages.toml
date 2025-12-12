@@ -4,7 +4,7 @@ compatibility_date = "2025-11-22"
 pages_build_output_dir = "dist"
 
 [env.production.pages]
-env = { VITE_API_BASE_URL = "https://game-auth-worker.seaman-sun.workers.dev", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }
+env = { VITE_API_BASE_URL = "/api/auth", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }
 
 [env.preview.pages]
-env = { VITE_API_BASE_URL = "https://game-auth-worker.seaman-sun.workers.dev", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }
+env = { VITE_API_BASE_URL = "/api/auth", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }

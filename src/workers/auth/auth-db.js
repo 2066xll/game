@@ -261,10 +261,11 @@ export async function registerUser(db, userData) {
   
   try {
     // 支持可选邮箱注册，email可以为null或undefined
-    const result = await db.prepare(
+    const result = await db.insert(
       `INSERT INTO users (user_code, nickname, email, password_hash) 
-       VALUES (?, ?, ?, ?)`
-    ).run([user_code, nickname, email || null, password_hash]);
+       VALUES (?, ?, ?, ?)`,
+      [user_code, nickname, email || null, password_hash]
+    );
     
     return { success: true, userId: result.lastInsertRowid, user_code };
   } catch (error) {
@@ -291,10 +292,11 @@ export async function findUserByCodeOrEmail(db, identifier) {
 // 更新用户登录时间
 export async function updateLastLogin(db, userId) {
   try {
-    await db.prepare(
+    await db.update(
       `UPDATE users SET last_login = unixepoch() 
-       WHERE id = ?`
-    ).run([userId]);
+       WHERE id = ?`,
+      [userId]
+    );
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -305,15 +307,17 @@ export async function updateLastLogin(db, userId) {
 export async function createSession(db, userId, token, token_hash, expires_at) {
   try {
     // 首先清除用户的所有旧会话
-    await db.prepare(
-      `DELETE FROM sessions WHERE user_id = ?`
-    ).run([userId]);
+    await db.delete(
+      `DELETE FROM sessions WHERE user_id = ?`,
+      [userId]
+    );
     
     // 然后创建新会话
-    await db.prepare(
+    await db.insert(
       `INSERT INTO sessions (user_id, token, token_hash, expires_at, created_at, last_used) 
-       VALUES (?, ?, ?, ?, unixepoch(), unixepoch())`
-    ).run([userId, token, token_hash, expires_at]);
+       VALUES (?, ?, ?, ?, unixepoch(), unixepoch())`,
+      [userId, token, token_hash, expires_at]
+    );
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -354,10 +358,11 @@ export async function findUserById(db, userId) {
 // 更新用户邮箱
 export async function updateUserEmail(db, userId, email) {
   try {
-    await db.prepare(
+    await db.update(
       `UPDATE users SET email = ?, is_email_verified = 0 
-       WHERE id = ?`
-    ).run([email, userId]);
+       WHERE id = ?`,
+      [email, userId]
+    );
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -367,10 +372,11 @@ export async function updateUserEmail(db, userId, email) {
 // 验证用户邮箱
 export async function verifyUserEmail(db, userId) {
   try {
-    await db.prepare(
+    await db.update(
       `UPDATE users SET is_email_verified = 1 
-       WHERE id = ?`
-    ).run([userId]);
+       WHERE id = ?`,
+      [userId]
+    );
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -380,10 +386,11 @@ export async function verifyUserEmail(db, userId) {
 // 更新用户昵称
 export async function updateUserNickname(db, userId, nickname) {
   try {
-    await db.prepare(
+    await db.update(
       `UPDATE users SET nickname = ? 
-       WHERE id = ?`
-    ).run([nickname, userId]);
+       WHERE id = ?`,
+      [nickname, userId]
+    );
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -393,10 +400,10 @@ export async function updateUserNickname(db, userId, nickname) {
 // 更新用户密码
 export async function updateUserPassword(db, userId, password_hash) {
   try {
-    await db.prepare(
+    await db.update(
       `UPDATE users SET password_hash = ? 
-       WHERE id = ?`
-    ).run([password_hash, userId]);
+       WHERE id = ?`,
+      [password_hash, userId]);
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };

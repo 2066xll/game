@@ -79,7 +79,39 @@ async function handleRequest(request, env, ctx) {
     }
   
     // 处理不同的API端点
-    switch (path) {
+    // 支持两种路径格式：/register 和 /api/auth/register
+    let handledPath = path;
+    if (handledPath === '/register') {
+      handledPath = '/api/auth/register';
+    } else if (handledPath === '/login') {
+      handledPath = '/api/auth/login';
+    } else if (handledPath === '/me') {
+      handledPath = '/api/auth/me';
+    } else if (handledPath === '/user') {
+      handledPath = '/api/auth/user';
+    } else if (handledPath === '/bind-email') {
+      handledPath = '/api/auth/bind-email';
+    } else if (handledPath === '/unbind-email') {
+      handledPath = '/api/auth/unbind-email';
+    } else if (handledPath === '/change-password') {
+      handledPath = '/api/auth/change-password';
+    } else if (handledPath === '/refresh-token') {
+      handledPath = '/api/auth/refresh-token';
+    } else if (handledPath === '/logout') {
+      handledPath = '/api/auth/logout';
+    } else if (handledPath === '/send-password-reset') {
+      handledPath = '/api/auth/send-password-reset';
+    } else if (handledPath === '/verify-reset-code') {
+      handledPath = '/api/auth/verify-reset-code';
+    } else if (handledPath === '/reset-password') {
+      handledPath = '/api/auth/reset-password';
+    } else if (handledPath === '/delete-account') {
+      handledPath = '/api/auth/delete-account';
+    } else if (handledPath === '/recover-account') {
+      handledPath = '/api/auth/recover-account';
+    }
+    
+    switch (handledPath) {
       case '/api/auth/register':
         if (method === 'POST') {
           const result = await registerUser(db, env, requestBody);
