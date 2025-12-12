@@ -1,5 +1,153 @@
 // 输入验证和安全工具类
 class ValidationUtils {
+  // 验证邮箱格式
+  static validateEmail(email) {
+    if (!email || typeof email !== 'string') {
+      return { valid: false, message: '邮箱不能为空且必须为字符串' };
+    }
+    
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    if (!emailRegex.test(trimmedEmail)) {
+      return { valid: false, message: '邮箱格式不正确' };
+    }
+    
+    if (trimmedEmail.length > 254) {
+      return { valid: false, message: '邮箱长度不能超过254个字符' };
+    }
+    
+    return { valid: true, email: trimmedEmail };
+  }
+  
+  // 验证密码强度
+  static validatePassword(password) {
+    if (!password || typeof password !== 'string') {
+      return { valid: false, message: '密码不能为空且必须为字符串' };
+    }
+    
+    if (password.length < 8) {
+      return { valid: false, message: '密码长度不能少于8个字符' };
+    }
+    
+    if (password.length > 128) {
+      return { valid: false, message: '密码长度不能超过128个字符' };
+    }
+    
+    // 密码强度检查
+    const hasLower = /[a-z]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    const strength = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
+    
+    if (strength < 3) {
+      return { 
+        valid: false, 
+        message: '密码必须包含至少3种字符类型（小写字母、大写字母、数字、特殊字符）' 
+      };
+    }
+    
+    return { valid: true, strength };
+  }
+  
+  // 验证用户编码（6位数字）
+  static validateUserCode(userCode) {
+    if (!userCode || typeof userCode !== 'string') {
+      return { valid: false, message: '用户编码不能为空且必须为字符串' };
+    }
+    
+    const trimmedUserCode = userCode.trim();
+    if (!/^\d{6}$/.test(trimmedUserCode)) {
+      return { valid: false, message: '用户编码必须为6位数字' };
+    }
+    
+    return { valid: true, userCode: trimmedUserCode };
+  }
+  
+  // 验证昵称
+  static validateNickname(nickname) {
+    if (!nickname || typeof nickname !== 'string') {
+      return { valid: false, message: '昵称不能为空且必须为字符串' };
+    }
+    
+    const trimmedNickname = nickname.trim();
+    if (trimmedNickname.length === 0) {
+      return { valid: false, message: '昵称不能为空' };
+    }
+    
+    if (trimmedNickname.length < 2 || trimmedNickname.length > 50) {
+      return { valid: false, message: '昵称长度必须在2-50个字符之间' };
+    }
+    
+    // 允许字母、数字、下划线、中文字符
+    if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]{2,50}$/.test(trimmedNickname)) {
+      return { valid: false, message: '昵称只能包含字母、数字、下划线和中文字符' };
+    }
+    
+    return { valid: true, nickname: trimmedNickname };
+  }
+  
+  // 验证注册输入
+  static validateRegistration(nickname, email, password) {
+    // 验证昵称
+    const nicknameValidation = this.validateNickname(nickname);
+    if (!nicknameValidation.valid) {
+      return nicknameValidation;
+    }
+    
+    // 验证邮箱（可选）
+    if (email) {
+      const emailValidation = this.validateEmail(email);
+      if (!emailValidation.valid) {
+        return emailValidation;
+      }
+    }
+    
+    // 验证密码
+    const passwordValidation = this.validatePassword(password);
+    if (!passwordValidation.valid) {
+      return passwordValidation;
+    }
+    
+    return { valid: true };
+  }
+  
+  // 验证登录输入
+  static validateLogin(email, password, userCode) {
+    // 验证标识符（邮箱或用户编码）
+    if (!email && !userCode) {
+      return { valid: false, message: '邮箱或用户编码不能为空' };
+    }
+    
+    // 验证邮箱（如果提供）
+    if (email) {
+      const emailValidation = this.validateEmail(email);
+      if (!emailValidation.valid) {
+        return emailValidation;
+      }
+    }
+    
+    // 验证用户编码（如果提供）
+    if (userCode) {
+      const userCodeValidation = this.validateUserCode(userCode);
+      if (!userCodeValidation.valid) {
+        return userCodeValidation;
+      }
+    }
+    
+    // 验证密码
+    if (!password || typeof password !== 'string') {
+      return { valid: false, message: '密码不能为空且必须为字符串' };
+    }
+    
+    if (password.length < 8 || password.length > 128) {
+      return { valid: false, message: '密码长度必须在8-128个字符之间' };
+    }
+    
+    return { valid: true };
+  }
   // 验证消息内容
   static validateMessageContent(content) {
     if (!content || typeof content !== 'string') {
@@ -152,6 +300,61 @@ class ValidationUtils {
     }
     
     return token;
+  }
+  
+  // 验证聊天消息格式
+  static isValidChatMessage(message) {
+    // 检查消息是否为对象
+    if (!message || typeof message !== 'object') {
+      return false;
+    }
+    
+    // 检查必要字段
+    const requiredFields = ['id', 'userId', 'username', 'content', 'timestamp', 'type'];
+    for (const field of requiredFields) {
+      if (!(field in message)) {
+        return false;
+      }
+    }
+    
+    // 验证各个字段的类型和格式
+    if (typeof message.id !== 'string' || message.id.trim() === '') {
+      return false;
+    }
+    
+    if (typeof message.userId !== 'string' || message.userId.trim() === '') {
+      return false;
+    }
+    
+    if (typeof message.username !== 'string' || message.username.trim() === '') {
+      return false;
+    }
+    
+    if (typeof message.content !== 'string' || message.content.trim() === '') {
+      return false;
+    }
+    
+    if (!Number.isInteger(message.timestamp) || message.timestamp < 0) {
+      return false;
+    }
+    
+    // 验证消息类型
+    const validTypes = ['text', 'image', 'system'];
+    if (!validTypes.includes(message.type)) {
+      return false;
+    }
+    
+    // 验证内容长度
+    if (message.content.length > 1000) {
+      return false;
+    }
+    
+    // 可选字段验证
+    if (message.attachments && !Array.isArray(message.attachments)) {
+      return false;
+    }
+    
+    return true;
   }
 }
 

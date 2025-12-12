@@ -1,77 +1,10 @@
+# Cloudflare Pages配置文件
 name = "game-website"
-
-[[durable_objects.bindings]]
-name = "CHAT_ROOM"
-script_name = "websocket-worker"
-class_name = "ChatRoomDurableObject"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "game-chat-db"
-database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
-
-[[kv_namespaces]]
-binding = "SESSION_STORE"
-id = "3fb91ae014834e7e937314b377c268e5"
-preview_id = "f791ee4199d44e47a5650b868c0dab3d"
-
-# Cloudflare Pages 配置
-[env.production]
-name = "game-website-production"
 compatibility_date = "2025-11-22"
+pages_build_output_dir = "dist"
 
-[env.production.assets]
-directory = "./dist"
+[env.production.pages]
+env = { VITE_API_BASE_URL = "https://game-auth-worker.seaman-sun.workers.dev", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }
 
-[[env.production.d1_databases]]
-binding = "DB"
-database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
-
-[[env.production.durable_objects.bindings]]
-name = "CHAT_ROOM"
-script_name = "websocket-worker"
-class_name = "ChatRoomDurableObject"
-
-[[env.production.kv_namespaces]]
-binding = "SESSION_STORE"
-id = "0a46093b30dc43eb999c7ae4c3e94a83"
-preview_id = "620a37a62e7940c5b849e13837095c0b"
-
-# 消息清理Worker配置
-[env.message-cleanup-worker]
-name = "message-cleanup-worker"
-main = "src/workers/messageCleanupWorker.js"
-
-[[env.message-cleanup-worker.d1_databases]]
-binding = "DB"
-database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
-
-# 定时触发器配置（每小时执行一次清理）
-[env.message-cleanup-worker.triggers]
-[[env.message-cleanup-worker.triggers.cron]]
-cron = "0 * * * *"  # 每小时整点执行
-routes = ["/__scheduled"]
-
-[env.development]
-name = "game-website-development"
-compatibility_date = "2025-11-22"
-
-[env.development.assets]
-directory = "./dist"
-
-[[env.development.d1_databases]]
-binding = "DB"
-database_id = "73606391-5970-4435-8dbe-d0be3a201d0a"
-
-[[env.development.durable_objects.bindings]]
-name = "CHAT_ROOM"
-script_name = "websocket-worker"
-class_name = "ChatRoomDurableObject"
-
-[[env.development.kv_namespaces]]
-binding = "SESSION_STORE"
-id = "0a46093b30dc43eb999c7ae4c3e94a83"
-preview_id = "620a37a62e7940c5b849e13837095c0b"
-
-[build]
-command = "npm run build"
+[env.preview.pages]
+env = { VITE_API_BASE_URL = "https://game-auth-worker.seaman-sun.workers.dev", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }

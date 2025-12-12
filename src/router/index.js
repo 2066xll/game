@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import EmailBindView from '../views/EmailBindView.vue'
 import GroupManagementView from '../views/GroupManagementView.vue'
 import ChatView from '../views/ChatView.vue'
 import TestView from '../views/TestView.vue'
@@ -55,6 +56,12 @@ const routes = [
     path: '/chat-test',
     name: 'chat-test',
     component: ChatTestView
+  },
+  {
+    path: '/profile/email-bind',
+    name: 'email-bind',
+    component: EmailBindView,
+    meta: { requiresAuth: true }
   }
 ]
 

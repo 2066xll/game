@@ -1,4 +1,4 @@
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 // 聊天性能测试工具类
 class ChatPerformanceTest {
@@ -26,7 +26,10 @@ class ChatPerformanceTest {
   createUserConnection(userId, roomId, websocketUrl) {
     return new Promise((resolve, reject) => {
       try {
-        const conn = new WebSocket(`${websocketUrl}/ws/${roomId}`);
+        // 为测试生成模拟token（实际应该从认证服务获取）
+        const mockToken = `mock-token-${userId}-${Date.now()}`;
+        // 使用正确的URL格式，包含token和roomId参数
+        const conn = new WebSocket(`${websocketUrl}/ws?token=${mockToken}&roomId=${roomId}`);
         
         conn.userId = userId;
         conn.roomId = roomId;
@@ -192,7 +195,7 @@ class ChatPerformanceTest {
   }
 
   // 开始测试
-  async startTest(userCount = 5, messagesPerUser = 5, roomId = 'test-room-1', websocketUrl = 'ws://localhost:8787') {
+  async startTest(userCount = 5, messagesPerUser = 5, roomId = 'test-room-1', websocketUrl = process.env.WEBSOCKET_URL || 'ws://localhost:8787') {
     console.log(`开始聊天性能测试 - 用户数: ${userCount}, 每用户消息数: ${messagesPerUser}, 房间: ${roomId}`);
     
     try {
@@ -202,9 +205,21 @@ class ChatPerformanceTest {
       console.log('步骤1: 创建用户连接...');
       const connectionPromises = [];
       
+      // 正确处理WebSocket URL协议
+      let wsProtocol;
+      if (websocketUrl.startsWith('http://')) {
+        wsProtocol = websocketUrl.replace('http://', 'ws://');
+      } else if (websocketUrl.startsWith('https://')) {
+        wsProtocol = websocketUrl.replace('https://', 'wss://');
+      } else {
+        wsProtocol = websocketUrl;
+      }
+      
+      console.log(`使用WebSocket URL: ${wsProtocol}`);
+      
       for (let i = 1; i <= userCount; i++) {
         const userId = `test-user-${i}`;
-        connectionPromises.push(this.createUserConnection(userId, roomId, websocketUrl));
+        connectionPromises.push(this.createUserConnection(userId, roomId, wsProtocol));
       }
       
       const connections = await Promise.all(connectionPromises);
@@ -273,7 +288,9 @@ async function runTest() {
   const test = new ChatPerformanceTest();
   
   try {
-    await test.startTest();
+    const websocketUrl = process.env.WEBSOCKET_URL || 'ws://localhost:8787';
+    console.log(`使用WebSocket URL: ${websocketUrl}`);
+    await test.startTest(5, 5, 'test-room-1', websocketUrl);
     console.log('\n测试完成！');
   } catch (error) {
     console.error('测试失败:', error.message);
@@ -284,9 +301,9 @@ async function runTest() {
 }
 
 // 如果直接运行脚本
-if (require.main === module) {
+if (import.meta.url === new URL(process.argv[1], import.meta.url).href) {
   runTest();
 }
 
 // 导出类供其他模块使用
-module.exports = { ChatPerformanceTest };
+export { ChatPerformanceTest };

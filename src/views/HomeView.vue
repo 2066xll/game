@@ -3,6 +3,14 @@
     <header class="page-header">
       <h1>Sunrize的游戏网站</h1>
       <p>探索最热门的游戏，找到你喜欢的类型</p>
+      
+      <!-- 聊天入口按钮 -->
+      <div class="chat-entry-container">
+        <router-link to="/chat/all" class="chat-entry-btn">
+          <span class="chat-icon">💬</span>
+          <span class="chat-text">进入聊天</span>
+        </router-link>
+      </div>
     </header>
 
     <!-- 搜索框 - 所有设备都显示 -->
@@ -293,6 +301,100 @@ onUnmounted(() => {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
+}
+
+/* 聊天入口按钮样式 */
+.chat-entry-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chat-entry-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #4285F4 0%, #34A853 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+  position: relative;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+}
+
+.chat-entry-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.chat-entry-btn:hover::before {
+  left: 100%;
+}
+
+.chat-entry-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
+  background: linear-gradient(135deg, #3367d6 0%, #2c8a4a 100%);
+}
+
+.chat-entry-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.chat-icon {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.chat-entry-btn:hover .chat-icon {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.chat-text {
+  transition: all 0.3s ease;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chat-entry-container {
+    margin-top: 15px;
+  }
+  
+  .chat-entry-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+    gap: 8px;
+  }
+  
+  .chat-icon {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-entry-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .chat-icon {
+    font-size: 1.2rem;
+  }
 }
 
 .page-header h1 {

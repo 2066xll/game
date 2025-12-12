@@ -24,6 +24,32 @@
           <span class="nav-text">首页</span>
         </router-link>
         
+        <!-- 用户认证相关按钮 - 根据认证状态显示不同按钮 -->
+        <template v-if="isAuthenticated">
+          <router-link to="/profile" class="nav-item user-profile-btn" active-class="active" @click="closeMobileMenu">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">个人中心</span>
+          </router-link>
+          <router-link to="/chat/all" class="nav-item chat-btn" active-class="active" @click="closeMobileMenu">
+            <span class="nav-icon">💬</span>
+            <span class="nav-text">聊天</span>
+          </router-link>
+          <button class="nav-item logout-btn" @click="handleLogout">
+            <span class="nav-icon">🚪</span>
+            <span class="nav-text">退出登录</span>
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="nav-item login-btn" active-class="active" @click="closeMobileMenu">
+            <span class="nav-icon">🔑</span>
+            <span class="nav-text">登录</span>
+          </router-link>
+          <router-link to="/register" class="nav-item register-btn" active-class="active" @click="closeMobileMenu">
+            <span class="nav-icon">📝</span>
+            <span class="nav-text">注册</span>
+          </router-link>
+        </template>
+        
         <!-- 游戏下拉菜单 - 优化版 -->
         <div class="dropdown" 
              @mouseenter="handleMouseEnter"
@@ -156,15 +182,18 @@
 
 <script setup>
 import { useGameStore } from '../store/gameStore'
+import { useRouter } from 'vue-router'
 import { onMounted, ref, onUnmounted } from 'vue'
 
 // 加载游戏数据
 const gameStore = useGameStore()
+const router = useRouter()
 
 // 状态管理
 const isOpen = ref(false)
 const isOpening = ref(false) // 用于处理菜单显示的过渡状态
 const mobileMenuOpen = ref(false) // 移动端菜单状态
+const isAuthenticated = ref(false) // 用户认证状态
 let openTimer = null
 let closeTimer = null
 
@@ -188,6 +217,22 @@ const handleMouseEnter = () => {
       }, 50)
     }, 50) // 很小的打开延迟，几乎是即时的
   }
+}
+
+// 处理退出登录
+const handleLogout = () => {
+  // 清除认证信息
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('user')
+  isAuthenticated.value = false
+  closeMobileMenu()
+  // 重定向到登录页
+  router.push('/login')
+}
+
+// 检查认证状态
+const checkAuthStatus = () => {
+  isAuthenticated.value = localStorage.getItem('auth_token') !== null
 }
 
 // 处理菜单鼠标进入
@@ -265,6 +310,8 @@ onUnmounted(() => {
 onMounted(() => {
   // 初始化时加载游戏数据
   gameStore.loadGames()
+  // 检查认证状态
+  checkAuthStatus()
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize)
 })
@@ -408,12 +455,65 @@ body.menu-open {
 }
 
 .nav-item {
+  display: flex;
+  align-items: center;
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 8px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  gap: 6px;
+}
+
+.nav-icon {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.1);
+}
+
+/* 特定按钮的样式增强 */
+.user-profile-btn:hover {
+  background: rgba(66, 133, 244, 0.15);
+}
+
+.user-profile-btn:hover .nav-text {
+  color: #4285F4;
+}
+
+.chat-btn:hover {
+  background: rgba(52, 168, 83, 0.15);
+}
+
+.chat-btn:hover .nav-text {
+  color: #34A853;
+}
+
+.logout-btn:hover {
+  background: rgba(234, 67, 53, 0.15);
+}
+
+.logout-btn:hover .nav-text {
+  color: #EA4335;
+}
+
+.login-btn:hover {
+  background: rgba(66, 133, 244, 0.15);
+}
+
+.login-btn:hover .nav-text {
+  color: #4285F4;
+}
+
+.register-btn:hover {
+  background: rgba(52, 168, 83, 0.15);
+}
+
+.register-btn:hover .nav-text {
+  color: #34A853;
 }
 
 .nav-item::before {

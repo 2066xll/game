@@ -123,20 +123,42 @@ class Database {
    */
   async transaction(fn) {
     try {
-      // 开始事务
-      await this.db.exec('BEGIN TRANSACTION');
+      // 检查是否支持exec方法
+      if (typeof this.db.exec !== 'function') {
+        console.warn('Database exec method not available, running without transaction');
+        // 直接执行函数，不使用事务
+        return await fn(this);
+      }
+      
+      // 添加try-catch以防止exec调用失败
+      try {
+        // 开始事务
+        await this.db.exec('BEGIN TRANSACTION');
+      } catch (beginError) {
+        console.warn('Failed to begin transaction, running without transaction:', beginError.message);
+        return await fn(this);
+      }
       
       try {
         // 执行事务函数
         const result = await fn(this);
         
         // 提交事务
-        await this.db.exec('COMMIT');
+        try {
+          await this.db.exec('COMMIT');
+        } catch (commitError) {
+          console.error('Failed to commit transaction:', commitError);
+          // 即使提交失败，仍然返回结果，因为操作可能已经部分成功
+        }
         
         return result;
       } catch (error) {
-        // 回滚事务
-        await this.db.exec('ROLLBACK');
+        // 尝试回滚，但不阻止原始错误抛出
+        try {
+          await this.db.exec('ROLLBACK');
+        } catch (rollbackError) {
+          console.error('Failed to rollback transaction:', rollbackError);
+        }
         throw error;
       }
     } catch (error) {

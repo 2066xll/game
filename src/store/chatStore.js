@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAuthStore } from './authStore'
 
-// 获取API基础URL，优先使用环境变量，其次使用默认值
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787'
+// 获取API基础URL，优先使用环境变量，其次使用相对路径
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 // 创建axios实例
 const chatApi = axios.create({
-  baseURL: `${API_BASE_URL}/api/chat`,
+  baseURL: `${API_BASE_URL}`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -60,7 +60,13 @@ export const useChatStore = defineStore('chat', {
     error: null, // 错误信息
     
     // 消息草稿
-    messageDrafts: {} // 每个群组的消息草稿 { groupId: draftText }
+    messageDrafts: {}, // 每个群组的消息草稿 { groupId: draftText }
+    
+    // 消息验证和重试相关
+    pendingMessages: new Map(), // 等待确认的消息 { messageId: { message, retries, timestamp } }
+    lastSequenceId: {}, // 每个群组的最后序列号 { groupId: sequenceId }
+    messageRetries: 3, // 消息发送最大重试次数
+    retryDelay: 1000 // 消息重试间隔（毫秒）
   }),
 
   getters: {
@@ -115,17 +121,21 @@ export const useChatStore = defineStore('chat', {
     async fetchGroups() {
       try {
         this.isLoading = true
-        const groups = await chatApi.get('/groups')
-        this.groups = groups
+        const groups = await chatApi.get('/groups', {
+          headers: {
+            'X-Session-Id': localStorage.getItem('auth_token')
+          }
+        })
+        this.groups = groups.groups || []
         
         // 初始化每个群组的未读消息数
-        groups.forEach(group => {
+        this.groups.forEach(group => {
           if (!this.unreadCounts[group.id]) {
             this.unreadCounts[group.id] = 0
           }
         })
         
-        return groups
+        return this.groups
       } catch (error) {
         this.setError('获取群组列表失败')
         throw error
@@ -138,7 +148,11 @@ export const useChatStore = defineStore('chat', {
     async fetchGroupMessages(groupId, limit = 50, offset = 0) {
       try {
         this.isLoading = true
-        const messages = await chatApi.get(`/groups/${groupId}/messages`, {
+        const messages = await chatApi.get('/channel/messages', {
+          headers: {
+            'X-Channel-Id': groupId,
+            'X-Session-Id': localStorage.getItem('auth_token')
+          },
           params: { limit, offset }
         })
         
@@ -149,10 +163,10 @@ export const useChatStore = defineStore('chat', {
         
         // 如果是首次加载或重置，直接替换消息数组
         if (offset === 0) {
-          this.groupMessages[groupId] = messages
+          this.groupMessages[groupId] = messages.messages || []
         } else {
           // 否则追加到现有消息的前面（历史消息）
-          this.groupMessages[groupId] = [...messages, ...this.groupMessages[groupId]]
+          this.groupMessages[groupId] = [...(messages.messages || []), ...this.groupMessages[groupId]]
         }
         
         // 清除未读消息计数
@@ -161,7 +175,7 @@ export const useChatStore = defineStore('chat', {
           await this.markAsRead(groupId)
         }
         
-        return messages
+        return messages.messages || []
       } catch (error) {
         this.setError('获取消息历史失败')
         throw error
@@ -192,6 +206,19 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
+    // 生成唯一消息ID
+    generateMessageId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2)
+    },
+    
+    // 获取下一个序列号
+    getNextSequenceId(groupId) {
+      if (!this.lastSequenceId[groupId]) {
+        this.lastSequenceId[groupId] = 0
+      }
+      return ++this.lastSequenceId[groupId]
+    },
+    
     // 发送消息到当前群组
     async sendMessage(content) {
       if (!this.currentGroup || !content.trim()) {
@@ -199,22 +226,51 @@ export const useChatStore = defineStore('chat', {
       }
       
       try {
+        const messageId = this.generateMessageId()
+        const sequenceId = this.getNextSequenceId(this.currentGroup.id)
+        
         const messageData = {
+          id: messageId,
           content: content.trim(),
-          groupId: this.currentGroup.id
+          groupId: this.currentGroup.id,
+          roomId: this.currentGroup.id, // 兼容服务器端的roomId
+          sequenceId: sequenceId,
+          senderId: useAuthStore().user?.id,
+          status: 'sending',
+          timestamp: new Date().toISOString()
         }
         
-        // 通过WebSocket发送消息
-        if (this.wsConnected && this.wsConnection) {
-          this.wsConnection.send(JSON.stringify({
-            type: 'send_message',
-            data: messageData
-          }))
-        } else {
-          // 如果WebSocket未连接，通过HTTP API发送
-          await chatApi.post('/messages', messageData)
-          // 手动添加消息到本地状态
-          await this.fetchGroupMessages(this.currentGroup.id, 50, 0)
+        // 保存到待确认消息列表
+        this.pendingMessages.set(messageId, {
+          message: messageData,
+          retries: 0,
+          timestamp: Date.now()
+        })
+        
+        // 添加到本地消息列表（乐观更新）
+        this.addNewMessage(messageData)
+        
+        // 通过HTTP API发送消息
+        try {
+          const newMessage = await chatApi.post('/channel/messages', 
+            { content: content.trim() },
+            {
+              headers: {
+                'X-Channel-Id': this.currentGroup.id,
+                'X-Session-Id': localStorage.getItem('auth_token')
+              }
+            }
+          )
+          // 移除待确认消息
+          this.pendingMessages.delete(messageId)
+          // 更新消息状态
+          this.updateMessageStatus(messageId, 'sent')
+          // 替换本地消息
+          this.replaceLocalMessage(messageId, newMessage.message)
+        } catch (apiError) {
+          // 启动重试机制
+          this._scheduleMessageRetry(messageId)
+          throw apiError
         }
         
         // 清除草稿
@@ -226,14 +282,66 @@ export const useChatStore = defineStore('chat', {
         throw error
       }
     },
+    
+    // 安全发送WebSocket消息
+    _safeSendWebSocketMessage(messageObj, messageId) {
+      try {
+        if (this.wsConnected && this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
+          this.wsConnection.send(JSON.stringify(messageObj))
+        } else {
+          console.warn('WebSocket not connected, scheduling retry')
+          this._scheduleMessageRetry(messageId)
+        }
+      } catch (error) {
+        console.error('Error sending WebSocket message:', error)
+        this._scheduleMessageRetry(messageId)
+      }
+    },
+    
+    // 安排消息重试
+    _scheduleMessageRetry(messageId) {
+      const pendingMsg = this.pendingMessages.get(messageId)
+      if (!pendingMsg) return
+      
+      if (pendingMsg.retries >= this.messageRetries) {
+        console.error(`Message ${messageId} failed after ${this.messageRetries} retries`)
+        this.updateMessageStatus(messageId, 'failed')
+        this.pendingMessages.delete(messageId)
+        return
+      }
+      
+      pendingMsg.retries++
+      const delay = this.retryDelay * Math.pow(2, pendingMsg.retries - 1) // 指数退避
+      
+      setTimeout(() => {
+        // 检查消息是否仍在待处理中
+        if (this.pendingMessages.has(messageId)) {
+          const msgData = this.pendingMessages.get(messageId).message
+          this._safeSendWebSocketMessage({
+            type: 'send_message',
+            data: msgData
+          }, messageId)
+        }
+      }, delay)
+    },
+    
+    // 确认消息已发送
+    confirmMessageDelivery(messageId) {
+      if (this.pendingMessages.has(messageId)) {
+        this.pendingMessages.delete(messageId)
+        this.updateMessageStatus(messageId, 'delivered')
+      }
+    },
 
     // 创建新的聊天群组
-    async createGroup(groupName, userIds = []) {
+    async createGroup(groupName, userIds = [], options = {}) {
       try {
         this.isLoading = true
         const newGroup = await chatApi.post('/groups', {
           name: groupName,
-          userIds: [...userIds]
+          userIds: [...userIds],
+          description: options.description || '',
+          is_private: options.is_private || 0
         })
         
         // 添加到群组列表
@@ -269,6 +377,22 @@ export const useChatStore = defineStore('chat', {
         return group
       } catch (error) {
         this.setError('加入群组失败')
+        throw error
+      } finally {
+        this.isLoading = false
+      }
+    },
+    
+    // 邀请用户加入群组
+    async inviteUsersToGroup(groupId, userIds) {
+      try {
+        this.isLoading = true
+        await chatApi.post(`/groups/${groupId}/invite`, {
+          userIds: userIds
+        })
+        return true
+      } catch (error) {
+        this.setError('邀请用户失败')
         throw error
       } finally {
         this.isLoading = false
@@ -335,16 +459,27 @@ export const useChatStore = defineStore('chat', {
       
       try {
         const authStore = useAuthStore()
-        const token = authStore.token
+        const token = authStore.token || localStorage.getItem('auth_token')
         if (!token) {
           console.warn('No auth token available, cannot connect to WebSocket')
+          this.setError('登录状态已过期，请重新登录')
           return
         }
         
-        // WebSocket URL（将http替换为ws）
-        const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss' : 'ws'
-        const wsUrl = `${wsProtocol}://${API_BASE_URL.replace(/^https?:\/\//, '')}/ws`
+        // WebSocket URL构建
+        let wsUrl = ''
+        if (API_BASE_URL.startsWith('http')) {
+          // 如果是完整URL
+          const wsProtocol = API_BASE_URL.startsWith('https') ? 'wss' : 'ws'
+          wsUrl = `${wsProtocol}://${API_BASE_URL.replace(/^https?:\/\//, '')}/ws`
+        } else {
+          // 如果是相对路径，使用当前页面的主机名
+          const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+          const host = window.location.host
+          wsUrl = `${wsProtocol}//${host}${API_BASE_URL}/ws`
+        }
         
+        console.log('Attempting to connect to WebSocket:', `${wsUrl}?token=***`)
         this.wsConnection = new WebSocket(`${wsUrl}?token=${encodeURIComponent(token)}`)
         
         // WebSocket事件处理
@@ -352,16 +487,17 @@ export const useChatStore = defineStore('chat', {
           console.log('WebSocket connected')
           this.wsConnected = true
           this.wsReconnectAttempts = 0
+          this.setError(null) // 清除之前的错误
           
           // 发送加入所有群组的消息
-        this.groups.forEach(group => {
-          if (this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
-            this.wsConnection.send(JSON.stringify({
-              type: 'join_group',
-              data: { groupId: group.id }
-            }))
-          }
-        })
+          this.groups.forEach(group => {
+            if (this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
+              this.wsConnection.send(JSON.stringify({
+                type: 'join_group',
+                data: { groupId: group.id }
+              }))
+            }
+          })
         }
         
         this.wsConnection.onmessage = (event) => {
@@ -370,22 +506,32 @@ export const useChatStore = defineStore('chat', {
             this.handleWebSocketMessage(data)
           } catch (error) {
             console.error('Error parsing WebSocket message:', error)
+            // 尝试发送错误消息给用户界面
+            this.setError('接收消息失败，请检查网络连接')
           }
         }
         
         this.wsConnection.onerror = (error) => {
           console.error('WebSocket error:', error)
           this.wsConnected = false
+          // 显示错误给用户
+          this.setError('WebSocket连接错误，请检查网络连接')
         }
         
-        this.wsConnection.onclose = () => {
-          console.log('WebSocket disconnected')
+        this.wsConnection.onclose = (event) => {
+          console.log('WebSocket disconnected:', event.code, event.reason)
           this.wsConnected = false
-          this.attemptReconnect()
+          
+          // 不显示错误，直接尝试重新连接
+          if (event.code !== 1000) { // 1000是正常关闭
+            this.attemptReconnect()
+          }
         }
       } catch (error) {
         console.error('WebSocket connection error:', error)
         this.wsConnected = false
+        this.setError('WebSocket连接失败，请检查网络连接或稍后重试')
+        this.attemptReconnect()
       }
     },
 
@@ -416,11 +562,33 @@ export const useChatStore = defineStore('chat', {
     handleWebSocketMessage(data) {
       switch (data.type) {
         case 'new_message':
-          this.addNewMessage(data.data)
+          // 验证消息的roomId和sequenceId
+          if (data.data.roomId && data.data.sequenceId !== undefined) {
+            // 更新该群组的最后序列号
+            if (!this.lastSequenceId[data.data.roomId] || 
+                data.data.sequenceId > this.lastSequenceId[data.data.roomId]) {
+              this.lastSequenceId[data.data.roomId] = data.data.sequenceId
+            }
+            this.addNewMessage(data.data)
+          } else {
+            console.warn('Received message without valid roomId or sequenceId:', data.data)
+            // 仍然添加消息，但标记为可能有问题
+            const messageWithWarning = {
+              ...data.data,
+              _validationWarning: 'Missing roomId or sequenceId'
+            }
+            this.addNewMessage(messageWithWarning)
+          }
           break
           
         case 'message_delivered':
-          this.updateMessageStatus(data.data.messageId, 'delivered')
+          // 确认消息已送达
+          this.confirmMessageDelivery(data.data.messageId)
+          break
+          
+        case 'message_confirmed':
+          // 处理服务器的消息确认
+          this.confirmMessageDelivery(data.data.messageId)
           break
           
         case 'message_read':
@@ -437,6 +605,18 @@ export const useChatStore = defineStore('chat', {
           
         case 'typing_status':
           this.handleTypingStatus(data.data)
+          break
+          
+        case 'error':
+          // 处理来自服务器的错误
+          console.error('Server error:', data.message)
+          this.setError(data.message || '服务器错误')
+          break
+          
+        case 'reconnect_required':
+          // 服务器要求重新连接
+          console.warn('Server requested reconnection')
+          this.attemptReconnect()
           break
           
         default:
@@ -481,6 +661,24 @@ export const useChatStore = defineStore('chat', {
         
         if (messageIndex !== -1) {
           this.groupMessages[groupId][messageIndex].status = status
+          break
+        }
+      }
+    },
+
+    // 替换本地消息
+    replaceLocalMessage(localId, serverMessage) {
+      for (const groupId in this.groupMessages) {
+        const messageIndex = this.groupMessages[groupId].findIndex(
+          msg => msg.id === localId
+        )
+        
+        if (messageIndex !== -1) {
+          // 替换本地消息，保留本地状态
+          this.groupMessages[groupId][messageIndex] = {
+            ...serverMessage,
+            status: this.groupMessages[groupId][messageIndex].status
+          }
           break
         }
       }

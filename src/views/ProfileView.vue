@@ -13,6 +13,22 @@ const userInfo = reactive({
   userCode: ''
 })
 
+// 账号删除相关状态
+const deleteAccountModal = ref(false)
+const deleteConfirmPassword = ref('')
+const isDeletingAccount = ref(false)
+
+// 格式化邮箱显示（保护隐私）
+function formatEmailDisplay(email) {
+  if (!email) return ''
+  
+  const [username, domain] = email.split('@')
+  const maskedUsername = username.charAt(0) + '*'.repeat(Math.max(0, username.length - 2)) + 
+                         username.length > 1 ? username.charAt(username.length - 1) : ''
+  
+  return `${maskedUsername}@${domain}`
+}
+
 // 修改密码表单
 const passwordForm = reactive({
   currentPassword: '',
@@ -64,8 +80,14 @@ async function updateProfile() {
   }
   
   // 验证邮箱（如果填写了）
-  if (userInfo.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email)) {
+  if (userInfo.email && userInfo.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email.trim())) {
     errorMessage.value = '邮箱格式不正确'
+    return
+  }
+  
+  // 提示用户邮箱修改需要通过邮箱管理页面进行
+  if (userInfo.email && userInfo.email.trim()) {
+    errorMessage.value = '邮箱修改需要通过邮箱管理页面进行'
     return
   }
   
@@ -157,12 +179,53 @@ async function handleLogout() {
     errorMessage.value = '登出失败，请稍后重试'
   }
 }
+
+// 打开账号删除模态框
+function openDeleteModal() {
+  deleteAccountModal.value = true
+  deleteConfirmPassword.value = ''
+  errorMessage.value = ''
+  successMessage.value = ''
+}
+
+// 关闭账号删除模态框
+function closeDeleteModal() {
+  deleteAccountModal.value = false
+  deleteConfirmPassword.value = ''
+}
+
+// 执行账号删除
+async function deleteAccount() {
+  errorMessage.value = ''
+  successMessage.value = ''
+  
+  if (!deleteConfirmPassword.value) {
+    errorMessage.value = '请输入密码确认删除'
+    return
+  }
+  
+  isDeletingAccount.value = true
+  try {
+    await authStore.deleteAccount(deleteConfirmPassword.value)
+    successMessage.value = '账号已成功删除，7天内可恢复'
+    
+    // 3秒后登出用户
+    setTimeout(() => {
+      authStore.logout()
+      router.push('/login')
+    }, 3000)
+  } catch (error) {
+    errorMessage.value = error.message || '删除失败，请检查密码是否正确'
+  } finally {
+    isDeletingAccount.value = false
+  }
+}
 </script>
 
 <template>
   <div class="profile-container">
     <div class="profile-header">
-      <h1 class="page-title">个人资料</h1>
+      <h1 class="page-title">个人中心</h1>
       <button 
         type="button" 
         class="logout-button"
@@ -189,24 +252,31 @@ async function handleLogout() {
       </div>
       
       <!-- 标签切换 -->
-      <div class="tab-container">
-        <button 
-          type="button" 
-          class="tab-button" 
-          :class="{ active: activeTab === 'profile' }"
-          @click="switchTab('profile')"
-        >
-          基本信息
-        </button>
-        <button 
-          type="button" 
-          class="tab-button" 
-          :class="{ active: activeTab === 'password' }"
-          @click="switchTab('password')"
-        >
-          修改密码
-        </button>
-      </div>
+        <div class="tab-container">
+          <button 
+            type="button" 
+            class="tab-button" 
+            :class="{ active: activeTab === 'profile' }"
+            @click="switchTab('profile')"
+          >
+            基本信息
+          </button>
+          <button 
+            type="button" 
+            class="tab-button" 
+            :class="{ active: activeTab === 'password' }"
+            @click="switchTab('password')"
+          >
+            修改密码
+          </button>
+          <button 
+            type="button" 
+            class="tab-button"
+            @click="$router.push('/profile/email-bind')"
+          >
+            邮箱管理
+          </button>
+        </div>
       
       <!-- 个人信息表单 -->
       <div v-if="activeTab === 'profile'" class="form-container">
@@ -220,6 +290,10 @@ async function handleLogout() {
               class="form-input" 
               readonly
             />
+            <div class="user-code-warning">
+              <span class="warning-icon">⚠️</span>
+              <span class="warning-text">请妥善保管您的用户编码，用于登录和账号恢复</span>
+            </div>
           </div>
           
           <!-- 昵称 -->
@@ -238,13 +312,42 @@ async function handleLogout() {
           <!-- 邮箱 -->
           <div class="form-group">
             <label for="email" class="form-label">邮箱 <span class="optional-text">(可选)</span></label>
-            <input 
-              type="email" 
-              id="email"
-              v-model="userInfo.email" 
-              class="form-input"
-              placeholder="请输入邮箱地址"
-            />
+            <div v-if="!userInfo.email" class="email-status-container">
+              <input 
+                type="email" 
+                id="email" 
+                v-model="userInfo.email" 
+                class="form-input"
+                placeholder="请输入邮箱地址"
+              />
+              <div class="email-status unbound">未绑定邮箱</div>
+              <button 
+                type="button" 
+                class="email-bind-btn"
+                @click="$router.push('/profile/email-bind')"
+              >
+                前往绑定
+              </button>
+            </div>
+            <div v-else class="email-status-container">
+              <input 
+                type="email" 
+                id="email" 
+                v-model="userInfo.email" 
+                class="form-input"
+                placeholder="请输入邮箱地址"
+                readonly
+              />
+              <div class="email-status bound">已绑定邮箱</div>
+              <button 
+                type="button" 
+                class="email-bind-btn"
+                @click="$router.push('/profile/email-bind')"
+              >
+                修改邮箱
+              </button>
+            </div>
+            <p class="form-note">邮箱用于账号安全，请前往邮箱管理页面完成绑定</p>
           </div>
           
           <!-- 提交按钮 -->
@@ -255,6 +358,17 @@ async function handleLogout() {
               :disabled="isSavingProfile"
             >
               {{ isSavingProfile ? '保存中...' : '保存修改' }}
+            </button>
+          </div>
+          
+          <!-- 删除账号按钮 -->
+          <div class="account-actions">
+            <button 
+              type="button" 
+              class="delete-account-button"
+              @click="openDeleteModal"
+            >
+              删除账号
             </button>
           </div>
         </form>
@@ -310,6 +424,61 @@ async function handleLogout() {
             </button>
           </div>
         </form>
+      </div>
+      
+      <!-- 删除账号模态框 -->
+      <div v-if="deleteAccountModal" class="modal-overlay" @click="closeDeleteModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2 class="modal-title">删除账号</h2>
+            <button 
+              type="button" 
+              class="close-button"
+              @click="closeDeleteModal"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="warning-message">
+              <span class="warning-icon">⚠️</span>
+              <p>删除账号是不可逆操作！账号删除后，您的数据将被保留7天，7天内可恢复账号。</p>
+              <p>7天后，您的所有数据将被永久删除，无法恢复。</p>
+            </div>
+            
+            <div class="form-group">
+              <label for="deleteConfirmPassword" class="form-label">请输入密码确认删除</label>
+              <input 
+                type="password" 
+                id="deleteConfirmPassword"
+                v-model="deleteConfirmPassword" 
+                class="form-input"
+                placeholder="请输入您的密码"
+                :disabled="isDeletingAccount"
+              />
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button 
+              type="button" 
+              class="cancel-button"
+              @click="closeDeleteModal"
+              :disabled="isDeletingAccount"
+            >
+              取消
+            </button>
+            <button 
+              type="button" 
+              class="confirm-delete-button"
+              @click="deleteAccount"
+              :disabled="isDeletingAccount"
+            >
+              {{ isDeletingAccount ? '删除中...' : '确认删除' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -464,6 +633,56 @@ async function handleLogout() {
   font-size: 0.85rem;
 }
 
+.email-status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.email-status {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.email-status.bound {
+  background-color: rgba(52, 211, 153, 0.1);
+  color: #166534;
+  border: 1px solid #34d399;
+}
+
+.email-status.unbound {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.email-bind-btn {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+}
+
+.email-bind-btn:hover {
+  background-color: #2563eb;
+}
+
+.form-note {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
 .form-input {
   padding: 0.75rem 1rem;
   border: 1px solid var(--border-color);
@@ -514,6 +733,180 @@ async function handleLogout() {
   cursor: not-allowed;
 }
 
+/* 用户编码警告样式 */
+.user-code-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.warning-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 0.9rem;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+/* 账号删除按钮样式 */
+.account-actions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.delete-account-button {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.delete-account-button:hover {
+  background-color: #dc2626;
+}
+
+/* 删除账号模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.cancel-button {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background-color: var(--bg-disabled);
+}
+
+.confirm-delete-button {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.confirm-delete-button:disabled,
+.cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 模态框内的警告消息样式 */
+.warning-message {
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.warning-message p {
+  margin: 0;
+  color: #92400e;
+  line-height: 1.4;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .profile-container {
@@ -529,6 +922,20 @@ async function handleLogout() {
   .tab-button {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .cancel-button,
+  .confirm-delete-button {
+    width: 100%;
   }
 }
 </style>

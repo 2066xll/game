@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ApiError, ValidationError } from '../utils/ErrorHandler.js'
 import ErrorHandler from '../utils/ErrorHandler.js'
 import { Logger } from '../utils/Logger.js'
+import ValidationUtils from '../utils/validationUtils.js'
 
 const logger = new Logger('AuthStore')
 const errorHandler = ErrorHandler
@@ -97,35 +98,54 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // 用户注册
-    async register(password) {
-      this.loading = true
-      this.error = null
+    // 用户注册 - 修改为接受所有必填字段
+    async register(userData) {
+    this.loading = true
+    this.error = null
+    
+    try {
+      // 解构用户数据
+      const { nickname, email, password } = userData
       
-      try {
-        // 密码强度验证
-        if (!password || password.length < 8) {
-          throw new ValidationError('密码长度至少为8位')
-        }
-        
-        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/.test(password)) {
-          throw new ValidationError('密码必须包含字母和数字')
-        }
-        
-        const response = await authApi.post('/register', { password })
-        // 确保返回正确的数据格式
-        const data = response.data || response
-        
-        logger.info('用户注册成功', { userCode: data.userCode || data.user?.user_code })
-        return data
-      } catch (error) {
-        this.error = error.message || '注册失败，请稍后重试'
-        errorHandler.handleError('用户注册失败', error)
-        throw error
-      } finally {
-        this.loading = false
+      // 验证必填字段（邮箱现在是可选的）
+      if (!nickname || !password) {
+        throw new ValidationError('请填写所有必填字段')
       }
-    },
+      
+      // 密码强度验证
+      const passwordValidation = ValidationUtils.validatePassword(password);
+      if (!passwordValidation.valid) {
+        throw new ValidationError(passwordValidation.message);
+      }
+      
+      // 如果提供了邮箱，验证邮箱格式
+      if (email && email.trim()) {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if (!emailRegex.test(email)) {
+          throw new ValidationError('请输入有效的邮箱地址')
+        }
+      }
+      
+      // 昵称验证
+      if (nickname.length < 2 || nickname.length > 30) {
+        throw new ValidationError('昵称长度必须在2-30个字符之间')
+      }
+      
+      // 发送所有必填字段到后端
+      const response = await authApi.post('/register', { nickname, email, password })
+      // 确保返回正确的数据格式
+      const data = response || {} // authApi的response拦截器可能已经直接返回了data
+      
+      logger.info('用户注册成功', { userCode: data.userCode || data.user?.user_code })
+      return data
+    } catch (error) {
+      this.error = error.message || '注册失败，请稍后重试'
+      errorHandler.handleError('用户注册失败', error)
+      throw error
+    } finally {
+      this.loading = false
+    }
+  },
 
     // 用户登录（支持用户编码或邮箱登录）
     async login(identifier, password) {
@@ -217,8 +237,8 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // 绑定邮箱
-    async bindEmail(email) {
+    // 发送邮箱验证码
+    async sendVerificationCode(email, purpose = 'bind_email') {
       this.loading = true
       this.error = null
       
@@ -229,7 +249,45 @@ export const useAuthStore = defineStore('auth', {
           throw new ValidationError('请输入有效的邮箱地址')
         }
         
-        const response = await authApi.put('/email', { email })
+        const response = await authApi.post('/send-verification-code', { 
+          email, 
+          purpose 
+        })
+        
+        logger.info('验证码发送成功', { email, purpose })
+        return response
+      } catch (error) {
+        this.error = error.message || '验证码发送失败，请稍后重试'
+        errorHandler.handleError('发送验证码失败', error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // 绑定邮箱（支持验证码）
+    async bindEmail(email, verificationCode) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        // 邮箱格式验证
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          throw new ValidationError('请输入有效的邮箱地址')
+        }
+        
+        // 验证码验证
+        if (!verificationCode) {
+          throw new ValidationError('请输入验证码')
+        }
+        
+        // 使用更新的API端点，包含验证码参数
+        const response = await authApi.put('/users/me/email', { 
+          email, 
+          verificationCode 
+        })
+        
         const data = response.data || response
         
         // 更新用户信息
@@ -270,7 +328,36 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
       }
     },
-
+    
+    // 获取当前用户信息（别名，兼容旧代码）
+    async getCurrentUser() {
+      return this.getCurrentUserInfo()
+    },
+    
+    // 解绑邮箱
+    async unbindEmail() {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await authApi.post('/unbind-email')
+        const data = response.data || response
+        
+        // 更新用户信息
+        this.user.email = null
+        localStorage.setItem('user_info', JSON.stringify(this.user))
+        
+        logger.info('邮箱解绑成功', { userId: this.user.id })
+        return data
+      } catch (error) {
+        this.error = error.message || '邮箱解绑失败，请稍后重试'
+        errorHandler.handleError('解绑邮箱失败', error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
     // 验证用户编码是否存在
     async checkUserCodeExists(userCode) {
       try {
@@ -295,13 +382,10 @@ export const useAuthStore = defineStore('auth', {
         }
         
         // 新密码强度验证
-        if (newPassword.length < 8) {
-          throw new ValidationError('新密码长度至少为8位')
-        }
-        
-        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/.test(newPassword)) {
-          throw new ValidationError('新密码必须包含字母和数字')
-        }
+      const passwordValidation = ValidationUtils.validatePassword(newPassword);
+      if (!passwordValidation.valid) {
+        throw new ValidationError(passwordValidation.message.replace('密码', '新密码'));
+      }
         
         // 避免使用与当前密码相同的新密码
         if (currentPassword === newPassword) {
