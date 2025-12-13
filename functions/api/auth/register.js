@@ -2,6 +2,7 @@
  * 处理注册请求的Pages Function
  */
 
+// 静态导入bcryptjs
 import bcrypt from 'bcryptjs';
 
 /**
@@ -136,9 +137,32 @@ export async function onRequest(context) {
 
       // 4. 密码哈希处理
       console.log('[register] 开始密码哈希处理');
-      const salt = bcrypt.genSaltSync(10);
-      const passwordHash = bcrypt.hashSync(password, salt);
-      console.log('[register] 密码哈希处理完成');
+      let passwordHash;
+      try {
+        if (!bcrypt || typeof bcrypt.genSaltSync !== 'function' || typeof bcrypt.hashSync !== 'function') {
+          throw new Error('bcryptjs依赖未正确加载');
+        }
+        const salt = bcrypt.genSaltSync(10);
+        passwordHash = bcrypt.hashSync(password, salt);
+        console.log('[register] 密码哈希处理完成');
+      } catch (hashError) {
+        console.error('[register] 错误: 密码哈希处理失败', hashError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: {
+            message: '服务器处理失败，请稍后重试',
+            details: '密码哈希处理失败',
+            timestamp: new Date().toISOString()
+          },
+          status: 500
+        }), {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          status: 500
+        });
+      }
 
       // 5. 准备用户数据
       const userId = `user-${Date.now()}`;
