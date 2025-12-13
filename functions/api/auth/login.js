@@ -45,8 +45,12 @@ async function findUserByIdentifier(identifier, kv) {
  * 处理所有请求
  */
 export async function onRequest(context) {
+  // 添加请求开始日志
+  console.log(`[login] 收到请求: ${context.request.method} ${context.request.url}`);
+  
   // 处理OPTIONS请求
   if (context.request.method === 'OPTIONS') {
+    console.log('[login] 处理OPTIONS请求');
     return new Response(null, {
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -60,16 +64,67 @@ export async function onRequest(context) {
   // 只处理POST请求
   if (context.request.method === 'POST') {
     try {
-      // 1. 解析请求体
-      const requestBody = await context.request.json();
-      const { identifier, password } = requestBody;
-
-      // 2. 输入验证
-      if (!identifier || !password) {
+      // 检查KV存储是否可用
+      if (!context.env.USER_DATA) {
+        console.error('[login] 错误: KV存储不可用，context.env.USER_DATA 为 undefined');
         return new Response(JSON.stringify({
           success: false,
           error: {
-            message: '请输入用户名/邮箱和密码'
+            message: '服务器配置错误，请稍后重试',
+            details: 'KV存储未正确配置',
+            timestamp: new Date().toISOString()
+          },
+          status: 500
+        }), {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          status: 500
+        });
+      }
+      
+      console.log('[login] KV存储已配置，准备处理登录请求')
+      // 1. 解析请求体
+      let requestBody;
+      let identifier, password;
+      try {
+        requestBody = await context.request.json();
+        console.log('[login] 请求体解析成功:', JSON.stringify({
+          identifier: requestBody.identifier,
+          password: '******' // 不记录明文密码
+        }));
+        
+        identifier = requestBody.identifier;
+        password = requestBody.password;
+        
+        // 2. 输入验证
+        if (!identifier || !password) {
+          console.error('[login] 错误: 缺少必填字段');
+          return new Response(JSON.stringify({
+            success: false,
+            error: {
+              message: '请输入用户名/邮箱和密码',
+              details: '缺少标识符或密码',
+              timestamp: new Date().toISOString()
+            },
+            status: 400
+          }), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*'
+            },
+            status: 400
+          });
+        }
+      } catch (parseError) {
+        console.error('[login] 错误: 解析请求体失败:', parseError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: {
+            message: '请求格式错误，请检查输入内容',
+            details: `无法解析请求体: ${parseError.message}`,
+            timestamp: new Date().toISOString()
           },
           status: 400
         }), {

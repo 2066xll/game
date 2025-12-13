@@ -18,8 +18,8 @@
     "dev:worker": "wrangler dev ./src/workers/websocket-worker.js --local",
     "dev:minimal-worker": "wrangler dev ./src/workers/minimal-websocket-worker.js --local",
     "dev:auth": "wrangler dev ./src/workers/auth-worker.js --local",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name=game-website --branch=deploy-setup",
-    "deploy:dev": "npm run build:dev && wrangler pages deploy dist --project-name=game-website --branch=preview",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=game-website --branch=deploy-setup --commit-dirty=true",
+    "deploy:dev": "npm run build:dev && wrangler pages deploy dist --project-name=game-website --branch=preview --commit-dirty=true",
     "deploy:worker": "wrangler deploy --env=websocket-worker --config=wrangler-workers.toml",
     "deploy:auth-worker": "wrangler deploy --env=auth-worker --config=wrangler-workers.toml",
     "deploy:chat-room": "wrangler deploy ./src/workers/chatRoomDurableObject.js --name=game-chat-room --compatibility-date=2024-01-01 --compatibility-flags=nodejs_compat",
@@ -55,7 +55,7 @@
     "prettier": "^3.2.5",
     "terser": "^5.44.1",
     "vite": "^7.2.2",
-    "wrangler": "^4.48.0"
+    "wrangler": "^4.54.0"
   },
   "eslintConfig": {
     "root": true,
