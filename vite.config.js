@@ -28,14 +28,11 @@ export default defineConfig({
       overlay: true,
       clientPort: 3000
     },
-    // 添加API代理配置，解决注册超时问题
+    // 添加API代理配置，将/api/auth请求转发到本地模拟API服务器
     proxy: {
       '/api/auth': {
-        // 开发环境中代理到本地的Cloudflare Worker模拟环境
-        // 注意：实际部署时需要调整为真实的后端地址
         target: 'http://localhost:8787',
         changeOrigin: true
-        // 移除rewrite规则，确保后端接收到完整的/api/auth路径
       }
     },
     // 优化服务器响应时间

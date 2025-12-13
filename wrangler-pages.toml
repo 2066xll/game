@@ -3,8 +3,19 @@ name = "game-website"
 compatibility_date = "2025-11-22"
 pages_build_output_dir = "dist"
 
+# KV 存储绑定，用于存储用户数据
+kv_namespaces = [
+  { binding = "USER_DATA", id = "bbec674d8dd344e69590677fb7af9e89", preview_id = "2e921d984d1c427b8108bd6f8424e3e2" }
+]
+
 [env.production.pages]
 env = { VITE_API_BASE_URL = "/api/auth", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }
+kv_namespaces = [
+  { binding = "USER_DATA", id = "bbec674d8dd344e69590677fb7af9e89" }
+]
 
 [env.preview.pages]
 env = { VITE_API_BASE_URL = "/api/auth", VITE_WS_URL = "wss://game-websocket-worker.seaman-sun.workers.dev" }
+kv_namespaces = [
+  { binding = "USER_DATA", id = "2e921d984d1c427b8108bd6f8424e3e2" }
+]

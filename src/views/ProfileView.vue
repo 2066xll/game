@@ -46,18 +46,27 @@ const successMessage = ref('')
 
 // 获取用户信息
 onMounted(async () => {
+  console.log('开始获取用户信息...')
   isLoading.value = true
   try {
     const user = await authStore.getCurrentUser()
     if (user) {
-      userInfo.nickname = user.nickname || ''
+      console.log('获取到用户信息:', user)
+      // 安全地赋值用户信息，添加默认值防止显示undefined
+      userInfo.nickname = user.nickname || user.user_code || '未知用户'
       userInfo.email = user.email || ''
-      userInfo.userCode = user.userCode
+      userInfo.userCode = user.user_code || ''
+      console.log('用户信息已更新到表单')
+    } else {
+      console.warn('未获取到用户信息')
+      errorMessage.value = '未获取到用户信息'
     }
   } catch (error) {
-    errorMessage.value = '获取用户信息失败'
+    console.error('获取用户信息失败:', error)
+    errorMessage.value = '获取用户信息失败，请稍后重试'
   } finally {
     isLoading.value = false
+    console.log('用户信息获取完成')
   }
 })
 

@@ -67,11 +67,12 @@ async function handleLogin() {
   errorMessage.value = ''
   
   try {
-    const credentials = loginType.value === 'code' 
-      ? { userCode: formData.userCode, password: formData.password }
-      : { email: formData.email, password: formData.password }
+    // 获取登录标识符
+    const identifier = loginType.value === 'code' ? formData.userCode.trim() : formData.email.trim()
+    const password = formData.password
     
-    await authStore.login(credentials, isRemember.value)
+    // 调用 authStore.login 方法进行登录
+    const user = await authStore.login(identifier, password)
     
     // 登录成功后跳转到首页
     router.push('/')

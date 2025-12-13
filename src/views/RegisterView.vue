@@ -106,8 +106,16 @@ async function handleRegister() {
   
   isSubmitting.value = true
   errorMessage.value = ''
+  successMessage.value = ''
   
   try {
+    console.log('开始提交注册表单...')
+    console.log('表单数据:', {
+      nickname: formData.nickname.trim(),
+      email: formData.email.trim(),
+      password: '******' // 不打印明文密码
+    })
+    
     // 传递完整的表单数据给register方法
     const result = await authStore.register({
       nickname: formData.nickname.trim(),
@@ -115,8 +123,16 @@ async function handleRegister() {
       password: formData.password
     })
     
+    console.log('注册成功，返回结果:', result)
+    
+    // 检查返回结果格式
+    if (!result || !result.userCode) {
+      throw new Error('注册成功但返回数据格式不正确')
+    }
+    
     userCode.value = result.userCode
-    successMessage.value = '注册成功！您的用户编码是：' + result.userCode
+    successMessage.value = '注册成功！您的用户编码是：' + result.userCode + '，请记住您的用户编码，以便后续登录使用'
+    console.log('注册成功消息已设置')
     
     // 清空表单
     formData.nickname = ''
@@ -125,15 +141,28 @@ async function handleRegister() {
     formData.confirmPassword = ''
     passwordStrength.value = 0
     passwordStrengthText.value = ''
+    console.log('表单已清空')
     
-    // 3秒后跳转到登录页
-    setTimeout(() => {
-      router.push('/login')
-    }, 3000)
+    // 移除自动跳转，让用户手动切换到登录页面
   } catch (error) {
-    errorMessage.value = error.message || '注册失败，请稍后重试'
+    console.error('注册失败:', error)
+    console.error('错误详情:', error.response || error.message || error)
+    
+    // 显示更详细的错误信息
+    let errorMsg = error.message || '注册失败，请稍后重试'
+    
+    // 检查是否有更详细的错误信息
+    if (error.response && error.response.data && error.response.data.error) {
+      errorMsg = error.response.data.error.message
+      if (error.response.data.error.details) {
+        errorMsg += ' (' + error.response.data.error.details + ')'
+      }
+    }
+    
+    errorMessage.value = errorMsg
   } finally {
     isSubmitting.value = false
+    console.log('注册流程结束')
   }
 }
 
