@@ -14,6 +14,13 @@ CREATE TABLE IF NOT EXISTS users (
   nickname TEXT NOT NULL,
   email TEXT UNIQUE,
   password_hash TEXT NOT NULL,
+  is_email_verified INTEGER DEFAULT 0,
+  last_login TIMESTAMP,
+  status TEXT DEFAULT 'active',
+  avatar_url TEXT,
+  settings TEXT,
+  deleted_at TIMESTAMP,
+  recovery_expire_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -279,7 +286,7 @@ export async function findUserByCodeOrEmail(db, identifier) {
     const user = await db.getOne(
       `SELECT * FROM users 
        WHERE (user_code = ? OR email = ?) 
-       AND (status != "deleted" OR (deleted_at IS NOT NULL AND deleted_at > 0 AND recovery_expire_at > unixepoch()))`,
+       AND (status != "deleted" OR (deleted_at IS NOT NULL AND recovery_expire_at > CURRENT_TIMESTAMP))`,
       [identifier, identifier]
     );
     return user;
@@ -293,7 +300,7 @@ export async function findUserByCodeOrEmail(db, identifier) {
 export async function updateLastLogin(db, userId) {
   try {
     await db.update(
-      `UPDATE users SET last_login = unixepoch() 
+      `UPDATE users SET last_login = CURRENT_TIMESTAMP 
        WHERE id = ?`,
       [userId]
     );
@@ -345,7 +352,7 @@ export async function findUserById(db, userId) {
       `SELECT id, user_code, nickname, email, is_email_verified, created_at, last_login, status, avatar_url, settings 
        FROM users 
        WHERE id = ? 
-       AND (status != "deleted" OR (deleted_at IS NOT NULL AND deleted_at > 0 AND recovery_expire_at > unixepoch()))`,
+       AND (status != "deleted" OR (deleted_at IS NOT NULL AND recovery_expire_at > CURRENT_TIMESTAMP))`,
       [userId]
     );
     return user;

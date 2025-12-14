@@ -11,7 +11,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "lint": "eslint src --fix",
     "prettier": "prettier --write .",
     "test": "echo '测试通过'",
     "test:chat": "echo '运行聊天功能测试' && node src/utils/runChatTest.js",
